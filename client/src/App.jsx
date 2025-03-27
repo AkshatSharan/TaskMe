@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import MobileNavbar from './components/MobileNavbar';
 import DesktopNavbar from './components/DesktopNavbar';
 import { useState, useEffect } from "react";
+import Navigation from './components/Navigation';
 
 const App = () => {
 
@@ -27,6 +28,8 @@ const App = () => {
   return (
     <Router>
       <main className=''>
+      <Navigation />
+
         <Routes>
           {/* <Route path='/' element={<Landing />} /> */}
           <Route path='/' element={<Dashboard />} />
