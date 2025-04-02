@@ -58,8 +58,10 @@ const Navigation = () => {
                                 className="flex items-center justify-between text-white cursor-pointer hover:opacity-80"
                             >
                                 <div className="flex items-center space-x-2">
-                                    <List className="h-5 w-5" />
-                                    <span>Task Groups</span>
+                                    <NavLink to='/task-groups' className="flex items-center space-x-2 text-white cursor-pointer hover:opacity-80">
+                                        <List className="h-5 w-5" />
+                                        <span>Task Groups</span>
+                                    </NavLink>
                                 </div>
                                 <div className="flex items-center">
                                     <button

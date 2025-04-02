@@ -5,10 +5,10 @@ import './index.css'
 import Signup from './pages/Signup';
 import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
-import MobileNavbar from './components/MobileNavbar';
-import DesktopNavbar from './components/DesktopNavbar';
 import { useState, useEffect } from "react";
 import Navigation from './components/Navigation';
+import TaskGroups from './pages/TaskGroups';
+import GroupDetails from './pages/GroupDetails';
 
 const App = () => {
 
@@ -33,6 +33,8 @@ const App = () => {
         <Routes>
           {/* <Route path='/' element={<Landing />} /> */}
           <Route path='/' element={<Dashboard />} />
+          <Route path='/task-groups' element={<TaskGroups />} />
+          <Route path='/group' element={<GroupDetails />} />
           <Route path='/login' element={<Login />} />
           <Route path='/signup' element={<Signup />} />
         </Routes>
