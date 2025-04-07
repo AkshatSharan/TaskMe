@@ -146,16 +146,16 @@ const Navigation = () => {
                 <nav className="p-4">
                     <ul className="space-y-5">
                         <li>
-                            <NavLink to='/' className="flex items-center space-x-2 text-white cursor-pointer hover:opacity-80">
+                            <NavLink to='/' className="flex items-center space-x-2 text-white cursor-pointer">
                                 <Home className="h-5 w-5" />
                                 <span>Home</span>
                             </NavLink>
                         </li>
 
                         <li>
-                            <div className="flex items-center justify-between text-white cursor-pointer hover:opacity-80">
+                            <div className="flex items-center justify-between text-white cursor-pointer">
                                 <div className="flex items-center space-x-2">
-                                    <NavLink to='/task-groups' className="flex items-center space-x-2 text-white cursor-pointer hover:opacity-80">
+                                    <NavLink to='/task-groups' className="flex items-center space-x-2 text-white cursor-pointer">
                                         <List className="h-5 w-5" />
                                         <span>Task Groups</span>
                                     </NavLink>
@@ -170,10 +170,10 @@ const Navigation = () => {
 
                                     {isGroupOptionsOpen && (
                                         <div className="absolute right-0 top-8 bg-white rounded-md shadow-lg z-40 w-40">
-                                            <ul className="py-1">
+                                            <ul className="py-5">
                                                 <li>
                                                     <button
-                                                        className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50"
+                                                        className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
                                                         onClick={() => {
                                                             setIsGroupOptionsOpen(false);
                                                             setIsCreateGroupModalOpen(true);
@@ -184,7 +184,7 @@ const Navigation = () => {
                                                 </li>
                                                 <li>
                                                     <button
-                                                        className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50"
+                                                        className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-blue hover:bg-gray-100x"
                                                         onClick={() => {
                                                             setIsGroupOptionsOpen(false);
                                                             setIsJoinGroupModalOpen(true);
@@ -219,7 +219,7 @@ const Navigation = () => {
                                                     e.stopPropagation();
                                                     setActiveGroupMenu(activeGroupMenu === group.id ? null : group.id);
                                                 }}
-                                                className="text-gray-700 hover:text-black p-1 rounded-full hover:bg-blue-100"
+                                                className="text-gray-700 hover:text-black p-1 rounded-full hover:bg-blue"
                                             >
                                                 <MoreVertical size={12} />
                                             </button>
@@ -232,7 +232,7 @@ const Navigation = () => {
                                                     <ul className="py-1">
                                                         <li>
                                                             <button
-                                                                className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50"
+                                                                className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 text-sm"
                                                                 onClick={() => {
                                                                     copyGroupCode(group.inviteCode);
                                                                     setActiveGroupMenu(null);

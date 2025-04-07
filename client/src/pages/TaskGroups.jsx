@@ -71,19 +71,19 @@ const TaskGroups = () => {
     };
 
     return (
-        <div className="min-h-screen bg-blue-300 text-white p-6">
+        <div className="min-h-screen bg-blue-300 text-white sm:p-12 p-8">
             <main className="md:ml-56">
                 <h1 className="text-2xl font-bold mb-6">Task Groups</h1>
                 <div className="space-y-4">
                     {groups.map((group) => (
                         <div
                             key={group.id}
-                            className={`bg-gray-800 rounded-lg p-4 border-l-4 cursor-pointer ${getBorderColor(
+                            className={`bg-gray-800 rounded-lg p-6 border-l-4 cursor-pointer  ${getBorderColor(
                                 group.color
                             )} hover:bg-gray-700 transition-colors`}
                             onClick={() => handleGroupClick(group.id)}
                         >
-                            <div className="flex justify-between items-start">
+                            <div className="flex justify-between items-start space-y-2">
                                 <div>
                                     <div className="flex items-center">
                                         <h3 className="text-lg font-semibold">{group.name}</h3>
