@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Pencil, Trash2, Plus, User, MoreVertical, UserPlus, UserMinus, X, Filter, ChevronDown } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { Pencil, Trash2, Plus, User, MoreVertical, UserPlus, UserMinus, X, Filter, ChevronDown, LogOut, AlertTriangle } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
 
 const Modal = ({ isOpen, onClose, title, children }) => {
     if (!isOpen) return null;
@@ -27,6 +27,8 @@ const Modal = ({ isOpen, onClose, title, children }) => {
 
 const GroupDetails = () => {
     const { groupId } = useParams();
+    const navigate = useNavigate();
+
     const [tasks, setTasks] = useState([
         {
             id: 1,
@@ -62,11 +64,16 @@ const GroupDetails = () => {
             { id: 2, name: "Jane Smith", initials: "JS" },
             { id: 3, name: "Mike Johnson", initials: "MJ" },
         ],
+        joinRequests: [
+            { id: 101, name: "Alex Wilson", initials: "AW" },
+            { id: 102, name: "Sarah Parker", initials: "SP" }
+        ]
     });
 
     const [activeMenu, setActiveMenu] = useState(null);
     const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+    const [isLeaveGroupModalOpen, setIsLeaveGroupModalOpen] = useState(false);
     const [isPriorityDropdownOpen, setIsPriorityDropdownOpen] = useState(false);
     const [priorityFilter, setPriorityFilter] = useState(null);
     const [currentTask, setCurrentTask] = useState(null);
@@ -202,45 +209,90 @@ const GroupDetails = () => {
         });
     };
 
+    const handleLeaveGroup = () => {
+        navigate('/');
+    };
+
+    const handleJoinRequest = (requestId, isApproved) => {
+        if (isApproved) {
+            const request = group.joinRequests.find(req => req.id === requestId);
+
+            if (request) {
+                setGroup({
+                    ...group,
+                    members: [...group.members, request],
+                    joinRequests: group.joinRequests.filter(req => req.id !== requestId)
+                });
+            }
+        } else {
+            setGroup({
+                ...group,
+                joinRequests: group.joinRequests.filter(req => req.id !== requestId)
+            });
+        }
+    };
+
     const filteredTasks = tasks.filter(task => {
         if (priorityFilter === null) return true;
         return task.priority === priorityFilter;
     });
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white p-4 md:p-6 md:ml-56">
-            <h1 className="text-2xl font-bold mb-6">{group.name}</h1>
+        <div className="min-h-screen bg-gray-900 text-white p-8 sm:p-12 md:ml-56">
+            <div className="flex justify-between items-start mb-6">
+                <h1 className="text-2xl max-sm:text-xl font-bold">{group.name}</h1>
+                <button
+                    onClick={() => setIsLeaveGroupModalOpen(true)}
+                    className="text-gray-400 hover:text-red-400 text-sm max-sm:text-xs border border-gray-700 px-3 py-1 rounded-md opacity-60 hover:opacity-100 transition-opacity flex items-center"
+                >
+                    <LogOut size={14} className="mr-1" />
+                    Leave Group
+                </button>
+            </div>
+
+            {group.joinRequests.length > 0 && (
+                <div className="mb-8 bg-gray-800 p-4 rounded-lg border border-accent-stroke sm:py-5 ">
+                    <h2 className="text-lg font-semibold mb-3">Pending Join Requests</h2>
+                    <div className="space-y-3 sm:space-y-6">
+                        {group.joinRequests.map(request => (
+                            <div key={request.id} className="flex max-sm:flex-col max-sm:gap-3 items-center justify-between bg-gray-700 p-3 rounded-md py-4">
+                                <div className="flex items-center">
+                                    <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-xs mr-3">
+                                        {request.initials}
+                                    </div>
+                                    <p className="">{request.name}</p>
+                                </div>
+                                <div className="flex gap-2 max-sm:justify-center max-sm:w-full">
+                                    <button
+                                        onClick={() => handleJoinRequest(request.id, true)}
+                                        className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded-md sm:text-sm max-sm:w-full text-xs"
+                                    >
+                                        Approve
+                                    </button>
+                                    <button
+                                        onClick={() => handleJoinRequest(request.id, false)}
+                                        className="bg-gray-600 hover:bg-gray-500 text-white px-2 py-1 rounded-md text-sm max-sm:w-full max-sm:text-xs"
+                                    >
+                                        Reject
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <div className="mb-8">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-semibold">Team Members</h2>
-                    <button
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 text-sm md:text-base md:px-3 rounded-md flex items-center"
-                        onClick={() => setIsAddMemberModalOpen(true)}
-                    >
-                        <UserPlus size={14} className="mr-1" />
-                        <span className="hidden sm:inline">Add Member</span>
-                        <span className="sm:hidden">Add</span>
-                    </button>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
+                <div className="flex justify-start gap-2 w-full overflow-x-auto">
                     {group.members.map((member) => (
                         <div
                             key={member.id}
-                            className="flex items-center bg-gray-800 rounded-full px-3 py-1 group relative"
+                            className="flex items-center bg-gray-800 rounded-full px-3 py-2"
                         >
-                            <div className="w-6 h-6 rounded-full bg-gray-600 flex items-center justify-center text-xs mr-2">
+                            <h2 className="w-6 p-2 h-6 rounded-full bg-gray-600 flex items-center justify-center text-xs mr-2">
                                 {member.initials}
-                            </div>
-                            <span>{member.name}</span>
-                            <button
-                                className="ml-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                                onClick={() => removeMember(member.id)}
-                                title="Remove member"
-                            >
-                                <X size={14} />
-                            </button>
+                            </h2>
+                            <p className="flex text-nowrap">{member.name}</p>
                         </div>
                     ))}
                 </div>
@@ -317,35 +369,21 @@ const GroupDetails = () => {
                         onClick={handleNewTask}
                     >
                         <Plus size={14} className="mr-1" />
-                        <span>New Task</span>
+                        <p className="text-xs">New Task</p>
                     </button>
                 </div>
 
-                {priorityFilter !== null && (
-                    <div className="bg-gray-800 text-sm rounded-md p-2 mb-3 flex justify-between items-center">
-                        <span>
-                            Showing only <strong className="capitalize">{priorityFilter}</strong> priority tasks
-                        </span>
-                        <button
-                            className="text-gray-400 hover:text-white"
-                            onClick={() => setPriorityFilter(null)}
-                        >
-                            <X size={16} />
-                        </button>
-                    </div>
-                )}
-
-                <div className="space-y-3">
+                <div className="space-y-3 sm:space-y-5">
                     {filteredTasks.length > 0 ? (
                         filteredTasks.map((task) => (
                             <div
                                 key={task.id}
-                                className="bg-gray-800 rounded-lg p-4 relative border border-accent-stroke"
+                                className="bg-gray-800 rounded-lg p-4 sm:p-6 flex flex-col gap-1 relative border border-accent-stroke"
                             >
                                 <div className="flex justify-between items-start mb-1">
                                     <div className="flex items-start gap-2">
-                                        <h3 className="font-medium">{task.title}</h3>
-                                        <span className={`text-xs px-2 py-0.5 rounded ${getPriorityColor(task.priority)} uppercase`}>
+                                        <h3 className="font-medium max-sm:text-sm">{task.title}</h3>
+                                        <span className={`text-xs px-2 py-0.5 rounded-full ${getPriorityColor(task.priority)} uppercase`}>
                                             {task.priority}
                                         </span>
                                     </div>
@@ -357,7 +395,6 @@ const GroupDetails = () => {
                                             <MoreVertical size={16} />
                                         </button>
 
-                                        {/* Task actions menu */}
                                         {activeMenu === task.id && (
                                             <div className="absolute right-0 top-6 bg-gray-700 rounded-md shadow-lg overflow-hidden z-10 w-24">
                                                 <ul>
@@ -382,8 +419,8 @@ const GroupDetails = () => {
                                         )}
                                     </div>
                                 </div>
-                                <p className="text-gray-400 text-sm mb-3">{task.description}</p>
-                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                <p className="text-gray-400 text-sm mb-3 max-sm:text-xs">{task.description}</p>
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
                                     <div className="flex items-center text-sm text-gray-400">
                                         {task.assignedTo === "Everyone" ? (
                                             <span>Assigned to Everyone</span>
@@ -400,7 +437,7 @@ const GroupDetails = () => {
                                         )}
                                     </div>
                                     <select
-                                        className={`text-xs rounded-md px-2 py-1 text-white ${getStatusColor(
+                                        className={`text-xs rounded-md px-3 py-2 text-white ${getStatusColor(
                                             task.status
                                         )} self-start sm:self-auto`}
                                         value={task.status}
@@ -555,6 +592,40 @@ const GroupDetails = () => {
                             disabled={!taskForm.title.trim()}
                         >
                             {currentTask ? "Update Task" : "Create Task"}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+
+            <Modal
+                isOpen={isLeaveGroupModalOpen}
+                onClose={() => setIsLeaveGroupModalOpen(false)}
+                title="Leave Group"
+            >
+                <div className="space-y-4">
+                    <div className="flex items-center justify-center py-4 text-center">
+                        <div className="bg-gray-700 p-4 rounded-full">
+                            <AlertTriangle size={32} className="text-yellow-500" />
+                        </div>
+                    </div>
+                    <div className="text-center">
+                        <h3 className="text-lg font-medium mb-2">Are you sure you want to leave this group?</h3>
+                        <p className="text-gray-400 text-sm">
+                            You'll lose access to all tasks and will need an invite to rejoin.
+                        </p>
+                    </div>
+                    <div className="flex justify-end space-x-3 pt-4">
+                        <button
+                            className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-md font-medium"
+                            onClick={() => setIsLeaveGroupModalOpen(false)}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            className="bg-gray-800 hover:bg-red-700 text-gray-300 hover:text-white border border-red-600 px-4 py-2 rounded-md transition-colors duration-200"
+                            onClick={handleLeaveGroup}
+                        >
+                            Leave Group
                         </button>
                     </div>
                 </div>

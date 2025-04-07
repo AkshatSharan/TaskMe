@@ -74,7 +74,7 @@ const Dashboard = () => {
 
     return (
         <div className="min-h-screen bg-blue-300 text-white">
-            <main className="md:ml-56">
+            <main className="md:ml-56 sm:p-5">
                 <div className="p-9">
                     <div className="grid grid-cols-2 gap-4 mb-6">
                         <div className="stat-card col-span-2">
@@ -199,8 +199,8 @@ const Dashboard = () => {
                                                 key={task.id}
                                                 className="text-xs sm:text-sm border-b border-b-accent-stroke last:border-b-0 hover:bg-blue-100 transition-colors"
                                             >
-                                                <td className="p-2 font-medium max-sm:max-w-[80px]">{task.name}</td>
-                                                <td className="p-2">
+                                                <td className="p-4 font-medium max-sm:max-w-[80px]">{task.name}</td>
+                                                <td className="p-4">
                                                     <span className={`priority-badge priority-${task.priority} text-xs sm:text-sm`}>
                                                         {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
                                                     </span>
