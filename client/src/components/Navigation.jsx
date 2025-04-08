@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Menu, User, Home, List, Plus, X, MoreVertical, LogOut, UserPlus, Copy, CheckCircle, UserMinus } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Navigation = () => {
+    const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeGroupMenu, setActiveGroupMenu] = useState(null);
     const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
@@ -92,8 +94,6 @@ const Navigation = () => {
 
     const handleJoinGroup = () => {
         if (joinGroupCode.trim()) {
-            // In a real app, this would validate the code on the server
-            // For demo purposes, we'll just show success
             setJoinSuccess(true);
             setTimeout(() => {
                 setJoinSuccess(false);
@@ -108,6 +108,25 @@ const Navigation = () => {
             setCopySuccess(true);
             setTimeout(() => setCopySuccess(false), 2000);
         });
+    };
+
+    const handleLogout = async () => {
+        try {
+            await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/auth/logout`, {}, {
+                withCredentials: true,
+            });
+
+            localStorage.removeItem("token");
+            localStorage.removeItem("isLoggedIn");
+            localStorage.removeItem("user");
+            localStorage.clear();
+            window.dispatchEvent(new Event('authChanged'));
+            delete axios.defaults.headers.common["Authorization"];
+
+            navigate("/login");
+        } catch (err) {
+            console.error("Logout failed:", err);
+        }
     };
 
     const Modal = ({ isOpen, onClose, title, children }) => {
@@ -295,10 +314,7 @@ const Navigation = () => {
                                 <li>
                                     <button
                                         className="flex items-center w-full text-left px-4 py-2 text-red-500 hover:bg-blue-50"
-                                        onClick={() => {
-                                            console.log("Sign out");
-                                            setProfilePopoverOpen(false);
-                                        }}
+                                        onClick={handleLogout}
                                     >
                                         <LogOut size={14} className="mr-2" /> Sign Out
                                     </button>

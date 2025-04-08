@@ -23,7 +23,7 @@ const Login = () => {
 
                 if (decoded.exp > now) {
                     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-                    navigate('/');
+                    navigate('/dashboard');
                 } else {
                     localStorage.clear();
                 }
@@ -58,9 +58,10 @@ const Login = () => {
                 localStorage.setItem('token', res.data.token);
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('user', JSON.stringify(res.data.user));
+                window.dispatchEvent(new Event('authChanged'));
 
                 axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
-                navigate('/');
+                navigate('/dashboard');
             } else {
                 setError(res.data.message || 'Login failed');
             }

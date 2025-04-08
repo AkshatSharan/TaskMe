@@ -12,18 +12,20 @@ import axios from 'axios';
 
 const App = () => {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 640);
-  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+  const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("isLoggedIn") === "true");
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    }
-    const handleResize = () => {
-      setIsDesktop(window.innerWidth >= 640);
+    const handleAuthChange = () => {
+      setIsLoggedIn(localStorage.getItem("isLoggedIn") === "true");
     };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+
+    window.addEventListener("storage", handleAuthChange);
+    window.addEventListener("authChanged", handleAuthChange); // custom event
+
+    return () => {
+      window.removeEventListener("storage", handleAuthChange);
+      window.removeEventListener("authChanged", handleAuthChange);
+    };
   }, []);
 
   return (
@@ -31,14 +33,12 @@ const App = () => {
       <main>
         {isLoggedIn && <Navigation />}
         <Routes>
-          {/* Conditionally render home route */}
-          <Route path="/" element={isLoggedIn ? <Dashboard /> : <Landing />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/dashboard" element={<Dashboard />} />
 
-          {/* Auth routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
 
-          {/* Protected routes */}
           <Route path="/task-groups" element={
             <ProtectedRoute>
               <TaskGroups />
@@ -50,7 +50,7 @@ const App = () => {
             </ProtectedRoute>
           } />
 
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route path="*" element={isLoggedIn ? <Navigate to="/" /> : <Navigate to='/dashboard' />} />
         </Routes>
       </main>
     </Router>
