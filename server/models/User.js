@@ -8,11 +8,6 @@ const userSchema = new mongoose.Schema({
     groups: [{ type: mongoose.Schema.Types.ObjectId, ref: 'TaskGroup' }],
 });
 
-userSchema.pre('save', async function () {
-    if (!this.isModified('password')) return;
-    this.password = await bcrypt.hash(this.password, 10);
-});
-
 userSchema.methods.matchPassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
