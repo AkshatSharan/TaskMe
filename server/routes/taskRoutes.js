@@ -6,17 +6,16 @@ import {
     updateTask,
     deleteTask
 } from '../controllers/taskController.js';
-
 import protect from '../middleware/authMiddleware.js';
-import { joinTask } from '../controllers/taskGroupController.js';
 
 const router = express.Router();
 
-router.get('/', protect, getTasks);
-router.post('/', protect, createTask);
-router.get('/:id', protect, getTaskDetails);
-router.post('/:id/join', protect, joinTask);
-router.put('/:id', protect, updateTask);
-router.delete('/:id', protect, deleteTask);
+router.route('/').get(protect, getTasks)
+    .post(protect, createTask);
+
+router.route('/:id')
+    .get(protect, getTaskDetails)
+    .put(protect, updateTask)
+    .delete(protect, deleteTask);
 
 export default router;

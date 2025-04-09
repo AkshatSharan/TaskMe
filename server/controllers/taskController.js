@@ -1,11 +1,34 @@
 import Task from '../models/Task.js';
 
-export const createTask = (req, res) => {
-    res.send('Create Task');
+export const createTask = async (req, res) => {
+    try {
+        const { name, priority, group, status } = req.body;
+
+        if (!name || !priority || !group || !status) {
+            return res.status(400).json({ message: 'All fields are required' });
+        }
+
+        const task = await Task.create({
+            name,
+            priority,
+            group,
+            status,
+            createdBy: req.user._id
+        });
+
+        res.status(201).json(task);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
 };
 
-export const getTasks = (req, res) => {
-    res.send('All Tasks');
+export const getTasks = async (req, res) => {
+    try {
+        const tasks = await Task.find({ createdBy: req.user._id }).sort({ createdAt: -1 });
+        res.status(200).json(tasks);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
 };
 
 export const getTaskDetails = async (req, res) => {
@@ -30,7 +53,6 @@ export const updateTask = async (req, res) => {
             return res.status(404).json({ message: 'Task not found' });
         }
 
-        // Optional: check if the user has permission to update
         if (task.createdBy.toString() !== req.user._id.toString()) {
             return res.status(401).json({ message: 'Not authorized to update this task' });
         }

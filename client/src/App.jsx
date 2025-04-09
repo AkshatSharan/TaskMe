@@ -33,7 +33,7 @@ const App = () => {
       <main>
         {isLoggedIn && <Navigation />}
         <Routes>
-          <Route path="/" element={<Landing />} />
+          <Route path="/" element={!isLoggedIn ? <Landing /> : <Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />
 
           <Route path="/login" element={<Login />} />
@@ -49,8 +49,7 @@ const App = () => {
               <GroupDetails />
             </ProtectedRoute>
           } />
-
-          <Route path="*" element={isLoggedIn ? <Navigate to="/" /> : <Navigate to='/dashboard' />} />
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>
     </Router>

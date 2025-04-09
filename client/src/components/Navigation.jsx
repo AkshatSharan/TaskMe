@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Menu, User, Home, List, Plus, X, MoreVertical, LogOut, UserPlus, Copy, CheckCircle, UserMinus } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { createGroup, joinGroupByCode, getMyGroups } from "../utils/taskAPI";
 import axios from "axios";
+import GroupsSidebar from "./GroupsSidebar";
+import Modal from "./Modal";
 
 const Navigation = () => {
     const navigate = useNavigate();
@@ -66,40 +69,38 @@ const Navigation = () => {
         console.log(`Navigating to group ${groupId}`);
     };
 
-    const handleGroupOptions = (e) => {
-        e.stopPropagation();
-        setIsGroupOptionsOpen(!isGroupOptionsOpen);
-    };
-
     const handleLeaveGroup = (groupId) => {
         setTaskGroups(taskGroups.filter(group => group.id !== groupId));
         setActiveGroupMenu(null);
     };
 
-    const handleCreateGroup = () => {
+    const handleCreateGroup = async () => {
         if (groupForm.name.trim()) {
-            const newGroup = {
-                id: Date.now(),
-                name: groupForm.name,
-                description: groupForm.description,
-                color: groupForm.color,
-                inviteCode: `${groupForm.name.toLowerCase().substring(0, 4)}-${Date.now().toString().substring(9)}`
-            };
-
-            setTaskGroups([...taskGroups, newGroup]);
-            setGroupForm({ name: "", description: "", color: "gray" });
-            setIsCreateGroupModalOpen(false);
+            try {
+                const res = await createGroup(groupForm);
+                setTaskGroups(prev => [...prev, res.data]);
+                setGroupForm({ name: "", description: "", color: "gray" });
+                setIsCreateGroupModalOpen(false);
+            } catch (err) {
+                console.error("Failed to create group:", err);
+            }
         }
     };
 
-    const handleJoinGroup = () => {
+    const handleJoinGroup = async () => {
         if (joinGroupCode.trim()) {
-            setJoinSuccess(true);
-            setTimeout(() => {
-                setJoinSuccess(false);
-                setJoinGroupCode("");
-                setIsJoinGroupModalOpen(false);
-            }, 2000);
+            try {
+                const res = await joinGroupByCode(joinGroupCode);
+                setTaskGroups(prev => [...prev, res.data.group]);
+                setJoinSuccess(true);
+                setTimeout(() => {
+                    setJoinSuccess(false);
+                    setJoinGroupCode("");
+                    setIsJoinGroupModalOpen(false);
+                }, 2000);
+            } catch (err) {
+                console.error("Failed to join group:", err);
+            }
         }
     };
 
@@ -115,7 +116,6 @@ const Navigation = () => {
             await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/auth/logout`, {}, {
                 withCredentials: true,
             });
-
             localStorage.removeItem("token");
             localStorage.removeItem("isLoggedIn");
             localStorage.removeItem("user");
@@ -128,27 +128,6 @@ const Navigation = () => {
             console.error("Logout failed:", err);
         }
     };
-
-    const Modal = ({ isOpen, onClose, title, children }) => {
-        if (!isOpen) return null;
-
-        return (
-            <div className="fixed inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                <div className="bg-blue-100 rounded-lg w-full max-w-md mx-auto shadow-xl">
-                    <div className="flex justify-between items-center border-b border-blue-200 p-4">
-                        <h3 className="text-lg font-medium">{title}</h3>
-                        <button onClick={onClose} className="text-gray-600 hover:text-black">
-                            <X size={20} />
-                        </button>
-                    </div>
-                    <div className="p-4">
-                        {children}
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
     return (
         <>
             <aside
@@ -165,125 +144,30 @@ const Navigation = () => {
                 <nav className="p-4">
                     <ul className="space-y-5">
                         <li>
-                            <NavLink to='/' className="flex items-center space-x-2 text-white cursor-pointer">
+                            <NavLink to='/dashboard' className="flex items-center space-x-2 text-white cursor-pointer">
                                 <Home className="h-5 w-5" />
                                 <span>Home</span>
                             </NavLink>
                         </li>
-
-                        <li>
-                            <div className="flex items-center justify-between text-white cursor-pointer">
-                                <div className="flex items-center space-x-2">
-                                    <NavLink to='/task-groups' className="flex items-center space-x-2 text-white cursor-pointer">
-                                        <List className="h-5 w-5" />
-                                        <span>Task Groups</span>
-                                    </NavLink>
-                                </div>
-                                <div className="flex items-center relative" ref={groupOptionsRef}>
-                                    <button
-                                        onClick={handleGroupOptions}
-                                        className="hover:bg-blue-100 rounded-full p-1"
-                                    >
-                                        <Plus className="h-4 w-4" />
-                                    </button>
-
-                                    {isGroupOptionsOpen && (
-                                        <div className="absolute right-0 top-8 bg-white rounded-md shadow-lg z-40 w-40">
-                                            <ul className="py-5">
-                                                <li>
-                                                    <button
-                                                        className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                                                        onClick={() => {
-                                                            setIsGroupOptionsOpen(false);
-                                                            setIsCreateGroupModalOpen(true);
-                                                        }}
-                                                    >
-                                                        <Plus size={14} className="mr-2" /> Create Group
-                                                    </button>
-                                                </li>
-                                                <li>
-                                                    <button
-                                                        className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-blue hover:bg-gray-100x"
-                                                        onClick={() => {
-                                                            setIsGroupOptionsOpen(false);
-                                                            setIsJoinGroupModalOpen(true);
-                                                        }}
-                                                    >
-                                                        <UserPlus size={14} className="mr-2" /> Join Group
-                                                    </button>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <ul className="mt-4 space-y-3 pl-6">
-                                {taskGroups.map((group) => (
-                                    <li
-                                        key={group.id}
-                                        className="flex items-center justify-between text-text-gray cursor-pointer hover:text-white"
-                                    >
-                                        <div
-                                            className="flex items-center space-x-2"
-                                            onClick={() => handleGroupClick(group.id)}
-                                        >
-                                            <div className={`w-2 h-2 rounded-full ${colorMap[group.color]}`} />
-                                            <span>{group.name}</span>
-                                        </div>
-
-                                        <div className="relative">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setActiveGroupMenu(activeGroupMenu === group.id ? null : group.id);
-                                                }}
-                                                className="text-gray-700 hover:text-black p-1 rounded-full hover:bg-blue"
-                                            >
-                                                <MoreVertical size={12} />
-                                            </button>
-
-                                            {activeGroupMenu === group.id && (
-                                                <div
-                                                    className="absolute right-0 top-6 bg-white rounded-md shadow-lg z-40 w-40"
-                                                    ref={groupMenuRef}
-                                                >
-                                                    <ul className="py-1">
-                                                        <li>
-                                                            <button
-                                                                className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 text-sm"
-                                                                onClick={() => {
-                                                                    copyGroupCode(group.inviteCode);
-                                                                    setActiveGroupMenu(null);
-                                                                }}
-                                                            >
-                                                                {copySuccess ?
-                                                                    <CheckCircle size={14} className="mr-2 text-green-500" /> :
-                                                                    <Copy size={14} className="mr-2" />
-                                                                }
-                                                                Copy Invite Code
-                                                            </button>
-                                                        </li>
-                                                        <li>
-                                                            <button
-                                                                className="flex items-center w-full text-left px-4 py-2 text-red-500 hover:bg-blue-50"
-                                                                onClick={() => handleLeaveGroup(group.id)}
-                                                            >
-                                                                <UserMinus size={14} className="mr-2" /> Leave Group
-                                                            </button>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        </li>
+                        <GroupsSidebar
+                            taskGroups={taskGroups}
+                            activeGroupMenu={activeGroupMenu}
+                            setActiveGroupMenu={setActiveGroupMenu}
+                            copySuccess={copySuccess}
+                            copyGroupCode={copyGroupCode}
+                            handleLeaveGroup={handleLeaveGroup}
+                            handleGroupClick={handleGroupClick}
+                            groupMenuRef={groupMenuRef}
+                            colorMap={colorMap}
+                            isGroupOptionsOpen={isGroupOptionsOpen}
+                            setIsGroupOptionsOpen={setIsGroupOptionsOpen}
+                            groupOptionsRef={groupOptionsRef}
+                            setIsCreateGroupModalOpen={setIsCreateGroupModalOpen}
+                            setIsJoinGroupModalOpen={setIsJoinGroupModalOpen}
+                        />
                     </ul>
                 </nav>
             </aside>
-
             <header className="bg-blue-200 p-4 flex justify-between items-center sticky top-0 z-20">
                 <div className="flex items-center">
                     <button onClick={toggleSidebar} className="mr-4 md:hidden">
@@ -298,7 +182,6 @@ const Navigation = () => {
                     >
                         <User className="h-6 w-6" />
                     </button>
-
                     {profilePopoverOpen && (
                         <div className="absolute right-0 top-10 bg-white rounded-md shadow-lg z-40 w-40">
                             <ul className="py-1">
@@ -324,8 +207,6 @@ const Navigation = () => {
                     )}
                 </div>
             </header>
-
-            {/* Create Group Modal */}
             <Modal
                 isOpen={isCreateGroupModalOpen}
                 onClose={() => setIsCreateGroupModalOpen(false)}
@@ -333,7 +214,7 @@ const Navigation = () => {
             >
                 <div className="space-y-4">
                     <div>
-                        <label htmlFor="groupName" className="block text-sm font-medium mb-1 text-gray-700">
+                        <label htmlFor="groupName" className="block text-sm font-medium mb-1 text-white">
                             Group Name <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -347,7 +228,7 @@ const Navigation = () => {
                         />
                     </div>
                     <div>
-                        <label htmlFor="groupDescription" className="block text-sm font-medium mb-1 text-gray-700">
+                        <label htmlFor="groupDescription" className="block text-sm font-medium mb-1 text-white">
                             Description
                         </label>
                         <textarea
@@ -356,11 +237,11 @@ const Navigation = () => {
                             onChange={(e) => setGroupForm({ ...groupForm, description: e.target.value })}
                             placeholder="Enter group description"
                             rows="3"
-                            className="bg-white border border-gray-300 text-gray-800 px-3 py-2 rounded-md w-full"
+                            className="bg-white border border-gray-300 text-gray-800 px-3 py-2 rounded-md w-full resize-none"
                         ></textarea>
                     </div>
                     <div>
-                        <label htmlFor="groupColor" className="block text-sm font-medium mb-1 text-gray-700">
+                        <label htmlFor="groupColor" className="block text-sm font-medium mb-1 text-white">
                             Color
                         </label>
                         <select
@@ -393,8 +274,6 @@ const Navigation = () => {
                     </div>
                 </div>
             </Modal>
-
-            {/* Join Group Modal */}
             <Modal
                 isOpen={isJoinGroupModalOpen}
                 onClose={() => {

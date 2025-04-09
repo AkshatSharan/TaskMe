@@ -1,54 +1,32 @@
 import { useState, useRef, useEffect } from "react";
 import { CheckCircle, AlertCircle, Clock, ChevronDown, Filter } from "lucide-react";
+import axios from "axios";
 
 const Dashboard = () => {
-    const [activeTab, setActiveTab] = useState("all");
+    const [tasks, setTasks] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [priorityFilter, setPriorityFilter] = useState(null);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
 
-    const initialTasks = [
-        {
-            id: 1,
-            name: "Website Redesign",
-            priority: "high",
-            group: "Design Team",
-            status: "progress",
-            dateAdded: new Date(2024, 2, 15),
-        },
-        {
-            id: 2,
-            name: "API Integration",
-            priority: "medium",
-            group: "Development",
-            status: "completed",
-            dateAdded: new Date(2024, 2, 20),
-        },
-        {
-            id: 3,
-            name: "User Testing",
-            priority: "low",
-            group: "QA Team",
-            status: "pending",
-            dateAdded: new Date(2024, 2, 10),
-        },
-        {
-            id: 4,
-            name: "Database Migration",
-            priority: "high",
-            group: "DevOps",
-            status: "pending",
-            dateAdded: new Date(2024, 2, 25),
-        },
-        {
-            id: 5,
-            name: "Security Audit",
-            priority: "medium",
-            group: "Security Team",
-            status: "progress",
-            dateAdded: new Date(2024, 2, 18),
-        },
-    ];
+    useEffect(() => {
+        const fetchTasks = async () => {
+            try {
+                const res = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/tasks`, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                setTasks(res.data);
+            } catch (err) {
+                console.error("Failed to fetch tasks:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchTasks();
+    }, []);
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -62,15 +40,14 @@ const Dashboard = () => {
         };
     }, []);
 
-    const filteredTasks = initialTasks.filter(task => {
+    const filteredTasks = tasks.filter(task => {
         if (priorityFilter === null) return true;
         return task.priority === priorityFilter;
     });
 
-    const handleAllTasksClick = () => {
-        setActiveTab("all");
-        setPriorityFilter(null);
-    };
+    const completedCount = tasks.filter(task => task.status === "completed").length;
+    const pendingCount = tasks.filter(task => task.status === "pending").length;
+    const progressCount = tasks.filter(task => task.status === "progress").length;
 
     return (
         <div className="min-h-screen bg-blue-300 text-white">
@@ -80,21 +57,21 @@ const Dashboard = () => {
                         <div className="stat-card col-span-2">
                             <span className="text-text-gray text-sm">Completed</span>
                             <div className="flex justify-between items-center mt-2">
-                                <span className="text-2xl font-bold">16</span>
+                                <span className="text-2xl font-bold">{completedCount}</span>
                                 <CheckCircle className="h-5 w-5 text-status-completed" color="green" />
                             </div>
                         </div>
                         <div className="stat-card">
                             <span className="text-text-gray text-sm">Pending</span>
                             <div className="flex justify-between items-center mt-2">
-                                <span className="text-2xl font-bold">3</span>
+                                <span className="text-2xl font-bold">{pendingCount}</span>
                                 <AlertCircle className="h-5 w-5 text-status-pending" color="red" />
                             </div>
                         </div>
                         <div className="stat-card">
                             <span className="text-text-gray text-sm">In Progress</span>
                             <div className="flex justify-between items-center mt-2">
-                                <span className="text-2xl font-bold">5</span>
+                                <span className="text-2xl font-bold">{progressCount}</span>
                                 <Clock className="h-5 w-5 text-status-progress animate-pulse" />
                             </div>
                         </div>
@@ -103,11 +80,8 @@ const Dashboard = () => {
                     <div className="p-2 flex space-x-2 mb-2">
                         <div className="relative" ref={dropdownRef}>
                             <button
-                                className={`tab-button ${activeTab === "priority" ? "bg-black" : "text-text-gray"} flex items-center`}
-                                onClick={() => {
-                                    setActiveTab("priority");
-                                    setDropdownOpen(!dropdownOpen);
-                                }}
+                                className={`tab-button flex items-center ${dropdownOpen ? 'bg-black text-white' : 'text-text-gray'}`}
+                                onClick={() => setDropdownOpen(!dropdownOpen)}
                             >
                                 <Filter className="w-4 h-4 mr-1" />
                                 Filter Priority
@@ -115,10 +89,10 @@ const Dashboard = () => {
                             </button>
                             {dropdownOpen && (
                                 <div className="absolute left-0 mt-1 w-fit bg-white rounded-md shadow-xl z-50">
-                                    <ul className="py-1 text-sm text-gray-700">
+                                    <ul className="py-1 text-sm text-black">
                                         <li>
                                             <button
-                                                className={`w-full text-left px-4 py-2 hover:bg-blue-100 ${priorityFilter === "high" ? "bg-blue-200" : ""}`}
+                                                className={`w-full text-left px-4 py-2 hover:bg-blue-100 ${priorityFilter === "high" ? "bg-blue-200 text-white" : ""}`}
                                                 onClick={() => {
                                                     setPriorityFilter("high");
                                                     setDropdownOpen(false);
@@ -186,10 +160,10 @@ const Dashboard = () => {
                             <table className="w-full bg-blue-200 rounded-lg min-w-[600px]">
                                 <thead>
                                     <tr className="border-b">
-                                        <th className="text-text-gray text-xs sm:text-sm font-medium p-2 text-left">Task</th>
-                                        <th className="text-text-gray text-xs sm:text-sm font-medium p-2 text-left">Priority</th>
-                                        <th className="text-text-gray text-xs sm:text-sm font-medium p-2 text-left">Group</th>
-                                        <th className="text-text-gray text-xs sm:text-sm font-medium p-2 text-left">Date Added</th>
+                                        <th className="text-text-gray text-xs sm:text-sm font-medium p-2 text-center">Task</th>
+                                        <th className="text-text-gray text-xs sm:text-sm font-medium p-2 text-center">Priority</th>
+                                        <th className="text-text-gray text-xs sm:text-sm font-medium p-2 text-center">Group</th>
+                                        <th className="text-text-gray text-xs sm:text-sm font-medium p-2 text-center">Date Added</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -206,9 +180,6 @@ const Dashboard = () => {
                                                     </span>
                                                 </td>
                                                 <td className="p-3 text-text-gray truncate max-w-[120px]">{task.group}</td>
-                                                <td className="p-3 text-text-gray">
-                                                    {task.dateAdded.toLocaleDateString()}
-                                                </td>
                                             </tr>
                                         ))
                                     ) : (

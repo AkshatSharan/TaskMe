@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import API from '../utils/axios';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -48,11 +49,7 @@ const Login = () => {
         console.log(formData);
 
         try {
-            const res = await axios.post(
-                `${import.meta.env.VITE_SERVER_URL}/api/auth/login`,
-                formData,
-                { withCredentials: true }
-            );
+            const res = await API.post('/auth/login', formData)
 
             if (res.data.success) {
                 localStorage.setItem('token', res.data.token);
