@@ -81,8 +81,6 @@ export const joinTask = async (req, res) => {
 
 export const getUserGroups = async (req, res) => {
     try {
-        console.log("User ID from token:", req.user._id);
-
         const groups = await TaskGroup.find({
             $or: [
                 { createdBy: req.user._id },
