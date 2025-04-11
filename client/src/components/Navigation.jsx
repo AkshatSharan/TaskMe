@@ -10,6 +10,7 @@ import { colorMap } from "./colorMap";
 const Navigation = () => {
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [taskGroups, setTaskGroups] = useState([]);
     const [activeGroupMenu, setActiveGroupMenu] = useState(null);
     const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
     const [isJoinGroupModalOpen, setIsJoinGroupModalOpen] = useState(false);

@@ -4,7 +4,7 @@ export const fetchTasks = () => API.get('/tasks');
 
 export const fetchTaskDetails = (id) => API.get(`/tasks/${id}`);
 
-export const createTask = (taskData) => API.post('/tasks', taskData);
+export const createTask = (taskData) => API.post("/tasks", taskData);
 
 export const updateTask = (id, taskData) => API.put(`/tasks/${id}`, taskData);
 

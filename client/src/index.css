@@ -80,3 +80,9 @@ input:focus {
 button {
   cursor: pointer;
 }
+
+input, textarea, select {
+  border: 1px #4B5563 solid;
+  background: lightgray;
+  color: black;
+}

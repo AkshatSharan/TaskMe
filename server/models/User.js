@@ -6,6 +6,7 @@ const userSchema = new mongoose.Schema({
     email: { type: String, unique: true, required: true },
     password: { type: String, required: true },
     groups: [{ type: mongoose.Schema.Types.ObjectId, ref: 'TaskGroup' }],
+    tasks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Task' }],
 });
 
 userSchema.methods.matchPassword = async function (enteredPassword) {

@@ -7,6 +7,7 @@ const taskGroupSchema = new mongoose.Schema({
   code: { type: String, unique: true, required: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  tasks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Task' }],
   joinRequests: [
     {
       user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

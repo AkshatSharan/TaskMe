@@ -118,7 +118,15 @@ export const getUserGroups = async (req, res) => {
                 { createdBy: req.user._id },
                 { members: req.user._id }
             ]
-        }).populate("members", "name email");
+        }).populate({
+            path: "tasks",
+            populate: {
+                path: "assignedTo",
+                select: "name"
+            }
+        })
+            .populate("members", "name email")
+            .populate("joinRequests.user", "name");
 
         res.status(200).json(groups);
     } catch (error) {
@@ -132,9 +140,15 @@ export const getGroupById = async (req, res) => {
     const userId = req.user._id;
 
     try {
-        const group = await TaskGroup.findById(groupId)
+        const group = await TaskGroup.findById(groupId).populate({
+            path: "tasks",
+            populate: {
+                path: "assignedTo",
+                select: "name"
+            }
+        })
             .populate("members", "name email")
-            .populate("joinRequests.user", "name email");
+            .populate("joinRequests.user", "name");
 
         if (!group) {
             return res.status(404).json({ message: "Group not found" });

@@ -14,7 +14,6 @@ const GroupDetails = () => {
     const [tasks, setTasks] = useState([]);
     const [priorityFilter, setPriorityFilter] = useState(null);
 
-    const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
     const [isLeaveGroupModalOpen, setIsLeaveGroupModalOpen] = useState(false);
     const [isPriorityDropdownOpen, setIsPriorityDropdownOpen] = useState(false);
@@ -29,7 +28,6 @@ const GroupDetails = () => {
     });
 
     const [currentTask, setCurrentTask] = useState(null);
-    const [newMemberName, setNewMemberName] = useState("");
     const priorityDropdownRef = useRef(null);
 
     useEffect(() => {
@@ -37,6 +35,7 @@ const GroupDetails = () => {
             try {
                 const res = await getGroupById(groupId);
                 setGroup(res.data);
+                console.log(res.data)
                 if (res.data.tasks) setTasks(res.data.tasks);
             } catch (err) {
                 console.error("Failed to fetch group data", err);
@@ -87,42 +86,12 @@ const GroupDetails = () => {
         setTasks(tasks.map((task) => task.id === taskId ? { ...task, status: newStatus } : task));
     };
 
-    const handleTaskFormChange = (e) => {
-        const { name, value } = e.target;
-        setTaskForm(prev => ({ ...prev, [name]: value }));
-    };
-
-    const saveTask = () => {
-        if (!taskForm.title.trim()) return;
-        if (currentTask) {
-            setTasks(tasks.map(t => t.id === currentTask.id ? { ...taskForm } : t));
-        } else {
-            setTasks([...tasks, { ...taskForm }]);
-        }
-        setIsTaskModalOpen(false);
-    };
-
-    const addMember = () => {
-        if (!newMemberName.trim()) return;
-        const newMember = {
-            id: Date.now(),
-            name: newMemberName,
-            initials: getInitials(newMemberName),
-        };
-        setGroup(prev => ({ ...prev, members: [...prev.members, newMember] }));
-        setNewMemberName("");
-        setIsAddMemberModalOpen(false);
-    };
-
     const getInitials = (name = "") => {
         if (!name.trim()) return "";
         const parts = name.trim().split(" ");
-
-        if (parts.length === 1) {
-            return parts[0].slice(0, 2).toUpperCase();
-        }
-
-        return (parts[0][0] + parts[1][0]).toUpperCase();
+        return parts.length === 1
+            ? parts[0].slice(0, 2).toUpperCase()
+            : (parts[0][0] + parts[1][0]).toUpperCase();
     };
 
     const handleJoinRequest = async (requestId, isApproved) => {
@@ -171,7 +140,7 @@ const GroupDetails = () => {
                 <h1 className="text-2xl font-bold">{group.name}</h1>
                 <button
                     onClick={() => setIsLeaveGroupModalOpen(true)}
-                    className="text-sm text-red-400 border border-gray-700 px-3 py-1 rounded-md"
+                    className="text-xs sm:text-sm text-red-400 border border-gray-700 px-3 py-1 rounded-md"
                 >
                     <LogOut size={14} className="inline mr-2" />
                     Leave Group
@@ -243,7 +212,7 @@ const GroupDetails = () => {
                         )}
                     </div>
                 </div>
-                <button onClick={handleNewTask} className="bg-blue-600 px-3 py-2 rounded-md text-sm flex items-center">
+                <button onClick={handleNewTask} className="bg-blue-600 px-3 py-2 rounded-md text-xs sm:text-sm flex items-center">
                     <Plus size={14} className="mr-1" />
                     New Task
                 </button>
@@ -251,8 +220,8 @@ const GroupDetails = () => {
 
             <div className="space-y-4">
                 {filteredTasks.length > 0 ? (
-                    filteredTasks.map(task => (
-                        <div key={task.id} className="bg-gray-800 p-4 rounded-md border border-gray-700">
+                    filteredTasks.map((task, index) => (
+                        <div key={task._id || task.id || `task-${index}`} className="bg-gray-800 p-4 rounded-md border border-gray-700">
                             <div className="flex justify-between items-center mb-2">
                                 <div className="flex items-center gap-2">
                                     <h3 className="font-medium">{task.title}</h3>
@@ -268,7 +237,9 @@ const GroupDetails = () => {
                             <p className="text-sm text-gray-400 mb-2">{task.description}</p>
                             <div className="flex justify-between items-center">
                                 <span className="text-xs">
-                                    {task.assignedTo === "Everyone" ? "Assigned to Everyone" : `Assigned to ${task.assignedTo}`}
+                                    {Array.isArray(task.assignedTo) && task.assignedTo.length > 0
+                                        ? `Assigned to ${task.assignedTo.map(user => user.name).join(", ")}`
+                                        : "Assigned to Everyone"}
                                 </span>
                                 <select
                                     value={task.status}
@@ -290,27 +261,15 @@ const GroupDetails = () => {
             </div>
 
             <GroupModals
-                isAddMemberModalOpen={isAddMemberModalOpen}
-                setIsAddMemberModalOpen={setIsAddMemberModalOpen}
-                newMemberName={newMemberName}
-                setNewMemberName={setNewMemberName}
-                addMember={addMember}
                 isTaskModalOpen={isTaskModalOpen}
                 setIsTaskModalOpen={setIsTaskModalOpen}
+                group={group}
+                groupId={groupId}
+                setTasks={setTasks}
                 taskForm={taskForm}
                 setTaskForm={setTaskForm}
-                handleTaskFormChange={handleTaskFormChange}
-                saveTask={saveTask}
                 currentTask={currentTask}
-                emptyTaskForm={{
-                    id: null,
-                    title: "",
-                    description: "",
-                    assignedTo: "",
-                    status: "Pending",
-                    priority: "medium"
-                }}
-                group={group}
+                setCurrentTask={setCurrentTask}
                 isLeaveGroupModalOpen={isLeaveGroupModalOpen}
                 setIsLeaveGroupModalOpen={setIsLeaveGroupModalOpen}
                 handleLeaveGroup={handleLeaveGroup}

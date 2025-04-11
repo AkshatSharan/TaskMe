@@ -1,71 +1,61 @@
-import React from "react";
+import React, { useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import Modal from "./Modal";
+import { createTask } from "../utils/taskAPI";
 
 const GroupModals = ({
-    isAddMemberModalOpen,
-    setIsAddMemberModalOpen,
-    newMemberName,
-    setNewMemberName,
-    addMember,
-
     isTaskModalOpen,
     setIsTaskModalOpen,
+    group,
+    groupId,
+    setTasks,
     taskForm,
     setTaskForm,
-    handleTaskFormChange,
-    saveTask,
     currentTask,
-    emptyTaskForm,
-    group,
+    setCurrentTask,
 
     isLeaveGroupModalOpen,
     setIsLeaveGroupModalOpen,
     handleLeaveGroup
 }) => {
+
+    const emptyTaskForm = {
+        id: null,
+        title: "",
+        description: "",
+        assignedTo: "",
+        status: "Pending",
+        priority: "medium"
+    };
+
+    const saveTask = async () => {
+        if (!taskForm.title.trim()) return;
+
+        const payload = {
+            ...taskForm,
+            groupId,
+            assignedTo: taskForm.assignedTo === "Everyone"
+                ? null
+                : group.members.find(m => m.name === taskForm.assignedTo)?._id ?? null
+        };
+
+        try {
+            const res = await createTask(payload);
+            setTasks(prev => [...prev, res.data]);
+            setIsTaskModalOpen(false);
+            setTaskForm(emptyTaskForm);
+        } catch (err) {
+            console.error("Failed to create task:", err);
+        }
+    };
+
+    const handleTaskFormChange = (e) => {
+        const { name, value } = e.target;
+        setTaskForm(prev => ({ ...prev, [name]: value }));
+    };
+
     return (
         <>
-            <Modal
-                isOpen={isAddMemberModalOpen}
-                onClose={() => {
-                    setIsAddMemberModalOpen(false);
-                    setNewMemberName("");
-                }}
-                title="Add Team Member"
-            >
-                <div className="space-y-4">
-                    <div>
-                        <label htmlFor="memberName" className="block text-sm font-medium text-gray-300 mb-1">
-                            Member Name
-                        </label>
-                        <input
-                            id="memberName"
-                            type="text"
-                            value={newMemberName}
-                            onChange={(e) => setNewMemberName(e.target.value)}
-                            placeholder="Enter full name"
-                            className="bg-gray-700 text-white px-3 py-2 rounded-md w-full"
-                        />
-                    </div>
-                    <div className="flex justify-end space-x-3 pt-2">
-                        <button
-                            className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-md"
-                            onClick={() => {
-                                setIsAddMemberModalOpen(false);
-                                setNewMemberName("");
-                            }}
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md"
-                            onClick={addMember}
-                        >
-                            Add Member
-                        </button>
-                    </div>
-                </div>
-            </Modal>
             <Modal
                 isOpen={isTaskModalOpen}
                 onClose={() => {
@@ -117,7 +107,7 @@ const GroupModals = ({
                             >
                                 <option value="Everyone">Everyone</option>
                                 {group.members.map(member => (
-                                    <option key={member.id} value={member.name}>
+                                    <option key={member._id} value={member.name}>
                                         {member.name}
                                     </option>
                                 ))}
@@ -160,6 +150,7 @@ const GroupModals = ({
                     </div>
                 </div>
             </Modal>
+
             <Modal
                 isOpen={isLeaveGroupModalOpen}
                 onClose={() => setIsLeaveGroupModalOpen(false)}
@@ -196,4 +187,5 @@ const GroupModals = ({
         </>
     );
 };
+
 export default GroupModals;
