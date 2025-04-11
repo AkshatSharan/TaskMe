@@ -100,3 +100,29 @@ export const getUserGroups = async (req, res) => {
         res.status(500).json({ message: "Failed to fetch groups", error: error.message });
     }
 };
+
+export const getGroupById = async (req, res) => {
+    const groupId = req.params.id;
+    const userId = req.user._id;
+
+    try {
+        const group = await TaskGroup.findById(groupId)
+            .populate("members", "name email")
+            .populate("joinRequests.user", "name email");
+
+        if (!group) {
+            return res.status(404).json({ message: "Group not found" });
+        }
+
+        const isMember = group.members.some(member => member.equals(userId));
+        const isCreator = group.createdBy.equals(userId);
+
+        if (!isMember && !isCreator) {
+            return res.status(403).json({ message: "You do not have access to this group." });
+        }
+
+        res.status(200).json(group);
+    } catch (err) {
+        res.status(500).json({ message: "Failed to fetch group", error: err.message });
+    }
+};

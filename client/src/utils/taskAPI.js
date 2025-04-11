@@ -19,3 +19,5 @@ export const fetchTaskGroups = async () => {
 export const createGroup = (groupData) => API.post("/groups", groupData);
 
 export const joinGroupByCode = (code) => API.post(`/groups/join/${code}`);
+
+export const getGroupById = (id) => API.get(`/groups/${id}`);

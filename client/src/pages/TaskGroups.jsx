@@ -10,7 +10,7 @@ const TaskGroups = () => {
     const [loading, setLoading] = useState(true);
 
     const handleGroupClick = (groupId) => {
-        navigate(`/groups/${groupId}`);
+        navigate(`/group/${groupId}`);
     };
 
     const loadGroups = useCallback(async () => {

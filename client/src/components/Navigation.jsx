@@ -52,7 +52,7 @@ const Navigation = () => {
     };
 
     const handleGroupClick = (groupId) => {
-        console.log(`Navigating to group ${groupId}`);
+        navigate(`/group/${groupId}`)
     };
 
     const handleLeaveGroup = (groupId) => {
