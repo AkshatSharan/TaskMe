@@ -9,7 +9,7 @@ import {
     UserPlus,
     Users,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { fetchTaskGroups } from "../utils/taskAPI";
 import { colorMap } from "./colorMap";
 
@@ -23,11 +23,12 @@ const GroupsSidebar = ({
     copySuccess,
     copyGroupCode,
     handleLeaveGroup,
-    handleGroupClick,
     setIsCreateGroupModalOpen,
     setIsJoinGroupModalOpen,
 }) => {
     const [taskGroups, setTaskGroups] = useState([]);
+    const navigate = useNavigate();
+    const { groupId } = useParams();
 
     useEffect(() => {
         const fetchGroups = async () => {
@@ -42,7 +43,11 @@ const GroupsSidebar = ({
         fetchGroups();
         window.addEventListener("groupRefresh", fetchGroups);
         return () => window.removeEventListener("groupRefresh", fetchGroups);
-    }, []);
+    }, [groupId]);
+
+    const handleGroupClick = (groupId) => {
+        navigate(`/group/${groupId}`)
+    };
 
     return (
         <li>

@@ -59,30 +59,56 @@ export const joinGroupByCode = async (req, res) => {
     }
 };
 
+export const approveOrRejectJoinRequest = async (req, res) => {
+    const { groupId, requestId } = req.params;
+    const { action } = req.body;
+
+    try {
+        console.log("Group ID:", groupId);
+        console.log("Request ID:", requestId);
+        console.log("Action:", action);
+
+        const group = await TaskGroup.findById(groupId);
+        if (!group) {
+            return res.status(404).json({ message: "Group not found" });
+        }
+
+        const joinRequest = group.joinRequests.find(
+            (req) => req._id.toString() === requestId
+        );
+
+        if (!joinRequest) {
+            return res.status(404).json({ message: "Join request not found" });
+        }
+
+        const userId = joinRequest.user;
+
+        if (action === "approve") {
+            if (!group.members.includes(userId)) {
+                group.members.push(userId);
+            }
+
+            await User.findByIdAndUpdate(userId, {
+                $addToSet: { groups: group._id },
+            });
+        }
+
+        group.joinRequests = group.joinRequests.filter(
+            (req) => req._id.toString() !== requestId
+        );
+
+        await group.save();
+
+        res.status(200).json({ message: `Request ${action}d successfully` });
+
+    } catch (error) {
+        console.error("Error processing join request:", error);
+        res.status(500).json({ message: "Something went wrong", error: error.message });
+    }
+};
 
 const generateGroupCode = () => {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
-};
-
-export const joinTask = async (req, res) => {
-    try {
-        const taskId = req.params.id;
-        const userId = req.user._id;
-
-        const task = await Task.findById(taskId);
-        if (!task) return res.status(404).json({ message: 'Task not found' });
-
-        if (task.assignedTo.includes(userId)) {
-            return res.status(400).json({ message: 'Already a member of this task' });
-        }
-
-        task.joinRequests.push(userId);
-        await task.save();
-
-        res.status(200).json({ message: 'Join request sent successfully' });
-    } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
-    }
 };
 
 export const getUserGroups = async (req, res) => {

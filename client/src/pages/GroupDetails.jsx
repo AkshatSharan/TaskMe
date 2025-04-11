@@ -1,10 +1,10 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
-    Pencil, Trash2, Plus, MoreVertical, Filter, ChevronDown, LogOut,
+    Pencil, Trash2, Plus, Filter, ChevronDown, LogOut
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import GroupModals from "../components/GroupModals";
-import { getGroupById } from "../utils/taskAPI";
+import { getGroupById, joinRequest } from "../utils/taskAPI";
 
 const GroupDetails = () => {
     const { groupId } = useParams();
@@ -12,8 +12,8 @@ const GroupDetails = () => {
 
     const [group, setGroup] = useState(null);
     const [tasks, setTasks] = useState([]);
-
     const [priorityFilter, setPriorityFilter] = useState(null);
+
     const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
     const [isLeaveGroupModalOpen, setIsLeaveGroupModalOpen] = useState(false);
@@ -27,24 +27,29 @@ const GroupDetails = () => {
         status: "Pending",
         priority: "medium",
     });
+
     const [currentTask, setCurrentTask] = useState(null);
     const [newMemberName, setNewMemberName] = useState("");
     const priorityDropdownRef = useRef(null);
 
-    const fetchGroupData = async () => {
-        try {
-            const res = await getGroupById(groupId);
-            setGroup(res.data);
-            if (res.data.tasks) setTasks(res.data.tasks);
-        } catch (err) {
-            console.error("Failed to fetch group data", err);
-            navigate("/dashboard");
-        }
-    };
+    useEffect(() => {
+        const fetchGroupData = async () => {
+            try {
+                const res = await getGroupById(groupId);
+                setGroup(res.data);
+                if (res.data.tasks) setTasks(res.data.tasks);
+            } catch (err) {
+                console.error("Failed to fetch group data", err);
+                navigate("/dashboard");
+            }
+        };
+
+        setGroup(null);
+        setTasks([]);
+        fetchGroupData();
+    }, [groupId]);
 
     useEffect(() => {
-        fetchGroupData();
-
         const handleClickOutside = (event) => {
             if (priorityDropdownRef.current && !priorityDropdownRef.current.contains(event.target)) {
                 setIsPriorityDropdownOpen(false);
@@ -102,28 +107,39 @@ const GroupDetails = () => {
         const newMember = {
             id: Date.now(),
             name: newMemberName,
-            initials: newMemberName.split(" ").map((n) => n[0]).join(""),
+            initials: getInitials(newMemberName),
         };
         setGroup(prev => ({ ...prev, members: [...prev.members, newMember] }));
         setNewMemberName("");
         setIsAddMemberModalOpen(false);
     };
 
-    const handleJoinRequest = (requestId, isApproved) => {
-        const request = group.joinRequests.find((r) => r.id === requestId);
-        if (!request) return;
+    const getInitials = (name = "") => {
+        if (!name.trim()) return "";
+        const parts = name.trim().split(" ");
 
-        if (isApproved) {
+        if (parts.length === 1) {
+            return parts[0].slice(0, 2).toUpperCase();
+        }
+
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+    };
+
+    const handleJoinRequest = async (requestId, isApproved) => {
+        try {
+            await joinRequest(groupId, requestId, { action: isApproved ? "approve" : "reject" });
+            const updatedRequests = group.joinRequests.filter(req => req._id !== requestId);
+            const updatedMembers = isApproved
+                ? [...group.members, group.joinRequests.find(req => req._id === requestId).user]
+                : group.members;
+
             setGroup(prev => ({
                 ...prev,
-                members: [...prev.members, request],
-                joinRequests: prev.joinRequests.filter(r => r.id !== requestId)
+                joinRequests: updatedRequests,
+                members: updatedMembers
             }));
-        } else {
-            setGroup(prev => ({
-                ...prev,
-                joinRequests: prev.joinRequests.filter(r => r.id !== requestId)
-            }));
+        } catch (err) {
+            console.error("Failed to approve request:", err);
         }
     };
 
@@ -166,13 +182,18 @@ const GroupDetails = () => {
                 <div className="mb-6 bg-gray-800 p-4 rounded-md">
                     <h2 className="font-semibold mb-2">Pending Join Requests</h2>
                     {group.joinRequests.map((req) => (
-                        <div key={req.id} className="flex justify-between items-center mb-2 bg-gray-700 p-3 rounded-md">
-                            <span>{req.name}</span>
+                        <div key={req._id} className="flex justify-between items-center mb-2 bg-gray-700 p-3 rounded-md">
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-xs">
+                                    {getInitials(req.user.name)}
+                                </div>
+                                <p>{req.user.name}</p>
+                            </div>
                             <div className="flex gap-2">
-                                <button onClick={() => handleJoinRequest(req.id, true)} className="bg-green-600 px-2 py-1 rounded-md text-sm">
+                                <button onClick={() => handleJoinRequest(req._id, true)} className="bg-green-600 px-2 py-1 rounded-md text-sm">
                                     Approve
                                 </button>
-                                <button onClick={() => handleJoinRequest(req.id, false)} className="bg-red-600 px-2 py-1 rounded-md text-sm">
+                                <button onClick={() => handleJoinRequest(req._id, false)} className="bg-red-600 px-2 py-1 rounded-md text-sm">
                                     Reject
                                 </button>
                             </div>
@@ -183,7 +204,10 @@ const GroupDetails = () => {
 
             <div className="mb-6 flex flex-wrap gap-2">
                 {group.members.map((member) => (
-                    <div key={member.id} className="bg-gray-800 px-3 py-2 rounded-full text-sm">
+                    <div key={member._id} className="flex items-center bg-gray-800 rounded-full px-3 py-2 text-sm">
+                        <div className="w-6 h-6 rounded-full bg-gray-600 flex items-center justify-center text-xs mr-2">
+                            {getInitials(member.name)}
+                        </div>
                         {member.name}
                     </div>
                 ))}

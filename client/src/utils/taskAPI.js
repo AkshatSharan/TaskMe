@@ -21,3 +21,5 @@ export const createGroup = (groupData) => API.post("/groups", groupData);
 export const joinGroupByCode = (code) => API.post(`/groups/join/${code}`);
 
 export const getGroupById = (id) => API.get(`/groups/${id}`);
+
+export const joinRequest = (groupId, requestId, action) => API.post(`/groups/${groupId}/requests/${requestId}`, action);

@@ -51,10 +51,6 @@ const Navigation = () => {
         setSidebarOpen(!sidebarOpen);
     };
 
-    const handleGroupClick = (groupId) => {
-        navigate(`/group/${groupId}`)
-    };
-
     const handleLeaveGroup = (groupId) => {
         setTaskGroups(taskGroups.filter(group => group.id !== groupId));
         setActiveGroupMenu(null);
@@ -152,7 +148,6 @@ const Navigation = () => {
                             copySuccess={copySuccess}
                             copyGroupCode={copyGroupCode}
                             handleLeaveGroup={handleLeaveGroup}
-                            handleGroupClick={handleGroupClick}
                             groupMenuRef={groupMenuRef}
                             colorMap={colorMap}
                             isGroupOptionsOpen={isGroupOptionsOpen}
