@@ -59,7 +59,6 @@ const TaskGroups = () => {
                                     className={`bg-gray-800 rounded-lg p-6 border-l-4 cursor-pointer ${colorMap[group.color]?.border} hover:bg-gray-700 transition-colors`}
                                     onClick={() => handleGroupClick(group._id)}
                                 >
-                                    {console.log(colorMap[group.color])}
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <div className="flex items-center">

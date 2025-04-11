@@ -67,8 +67,8 @@ const GroupsSidebar = ({
                         <Plus className="h-4 w-4" />
                     </button>
                     {isGroupOptionsOpen && (
-                        <div className="absolute right-0 top-8 bg-white rounded-md shadow-lg z-40 w-40">
-                            <ul className="py-5">
+                        <div className="absolute right-0 top-8 bg-white rounded-md shadow-lg z-40 w-40 overflow-hidden">
+                            <ul className="">
                                 <li>
                                     <button
                                         className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
@@ -161,10 +161,6 @@ const GroupsSidebar = ({
                                                 <UserMinus size={14} className="mr-2" />
                                                 Leave Group
                                             </button>
-                                        </li>
-                                        <li className="flex items-center px-4 py-2 text-gray-500 text-xs border-t">
-                                            <Users size={12} className="mr-2" />
-                                            {group.members?.length || 0} members
                                         </li>
                                     </ul>
                                 </div>

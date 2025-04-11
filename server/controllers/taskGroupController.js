@@ -29,30 +29,36 @@ export const createGroup = async (req, res) => {
 
 export const joinGroupByCode = async (req, res) => {
     const { code } = req.params;
+    const userId = req.user._id;
 
     try {
         const group = await TaskGroup.findOne({ code: code.toUpperCase() });
 
-        if (!group) return res.status(404).json({ message: "Group not found" });
-
-        const userId = req.user._id;
-
-        if (group.members.includes(userId)) {
-            return res.status(400).json({ message: "Already a member of this group" });
+        if (!group) {
+            return res.status(404).json({ message: "Group not found" });
         }
 
-        group.members.push(userId);
+        if (group.members.includes(userId)) {
+            return res.status(400).json({ message: "You are already a member of this group." });
+        }
+
+        const existingRequest = group.joinRequests.find(
+            (req) => req.user.toString() === userId.toString()
+        );
+
+        if (existingRequest) {
+            return res.status(400).json({ message: "You have already requested to join this group." });
+        }
+
+        group.joinRequests.push({ user: userId });
         await group.save();
 
-        await User.findByIdAndUpdate(userId, {
-            $addToSet: { groups: group._id }
-        });
-
-        res.status(200).json({ message: "Joined group successfully", group });
+        res.status(200).json({ message: "Join request sent successfully. Awaiting approval." });
     } catch (err) {
-        res.status(500).json({ message: "Failed to join group", error: err.message });
+        res.status(500).json({ message: "Failed to send join request", error: err.message });
     }
 };
+
 
 const generateGroupCode = () => {
     return Math.random().toString(36).substring(2, 8).toUpperCase();

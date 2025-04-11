@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Menu, User, Home, List, Plus, X, MoreVertical, LogOut, UserPlus, Copy, CheckCircle, UserMinus } from "lucide-react";
+import { Menu, User, Home, X, LogOut, CheckCircle } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { createGroup, joinGroupByCode, getMyGroups } from "../utils/taskAPI";
+import { createGroup, joinGroupByCode } from "../utils/taskAPI";
 import axios from "axios";
 import GroupsSidebar from "./GroupsSidebar";
 import Modal from "./Modal";
+import { colorMap } from "./colorMap";
 
 const Navigation = () => {
     const navigate = useNavigate();
@@ -26,21 +27,6 @@ const Navigation = () => {
     const groupMenuRef = useRef(null);
     const groupOptionsRef = useRef(null);
     const profileRef = useRef(null);
-
-    const colorMap = {
-        blue: "bg-blue-500",
-        green: "bg-green-500",
-        red: "bg-red-500",
-        purple: "bg-purple-500",
-        gray: "bg-gray-500"
-    };
-
-    const [taskGroups, setTaskGroups] = useState([
-        { id: 1, name: "Design Team", color: "blue", inviteCode: "design-123" },
-        { id: 2, name: "Development", color: "green", inviteCode: "dev-456" },
-        { id: 3, name: "QA Team", color: "red", inviteCode: "qa-789" },
-        { id: 4, name: "Marketing", color: "purple", inviteCode: "mkt-101" }
-    ]);
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -91,15 +77,26 @@ const Navigation = () => {
         if (joinGroupCode.trim()) {
             try {
                 const res = await joinGroupByCode(joinGroupCode);
-                setTaskGroups(prev => [...prev, res.data.group]);
+
                 setJoinSuccess(true);
                 setTimeout(() => {
                     setJoinSuccess(false);
                     setJoinGroupCode("");
                     setIsJoinGroupModalOpen(false);
-                }, 2000);
+                }, 1500);
             } catch (err) {
-                console.error("Failed to join group:", err);
+                const errorMsg = err?.response?.data?.message;
+
+                if (errorMsg === "You are already a member of this group.") {
+                    alert("You're already a member of this group.");
+                } else if (errorMsg === "You have already requested to join this group.") {
+                    alert("You have already requested to join this group.");
+                } else if (err?.response?.status === 404) {
+                    alert("Group not found.");
+                } else {
+                    console.error("Failed to join group:", err);
+                    alert("Something went wrong while trying to join the group.");
+                }
             }
         }
     };
@@ -150,7 +147,6 @@ const Navigation = () => {
                             </NavLink>
                         </li>
                         <GroupsSidebar
-                            taskGroups={taskGroups}
                             activeGroupMenu={activeGroupMenu}
                             setActiveGroupMenu={setActiveGroupMenu}
                             copySuccess={copySuccess}
