@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import API from '../utils/axios';
+import { signup } from '../utils/taskAPI';
 
 const Signup = () => {
     const navigate = useNavigate();
@@ -27,7 +29,7 @@ const Signup = () => {
         setLoading(true);
 
         try {
-            const res = await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/auth/signup`, formData);
+            const res = await signup(formData);
 
             if (res.data.success) {
                 navigate('/login');

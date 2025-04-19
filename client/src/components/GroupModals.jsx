@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { AlertTriangle } from "lucide-react";
 import Modal from "./Modal";
-import { createTask, updateTask, } from "../utils/taskAPI";
+import { createTask, leaveGroup, updateTask, } from "../utils/taskAPI";
+import { useNavigate } from "react-router-dom";
 
 const GroupModals = ({
     isTaskModalOpen,
@@ -13,7 +14,6 @@ const GroupModals = ({
     setTaskForm,
     isLeaveGroupModalOpen,
     setIsLeaveGroupModalOpen,
-    handleLeaveGroup
 }) => {
 
     const emptyTaskForm = {
@@ -26,6 +26,7 @@ const GroupModals = ({
     };
 
     const [assignToAll, setAssignToAll] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (taskForm.assignedTo.length > 0 && group.members.length > 0) {
@@ -108,6 +109,16 @@ const GroupModals = ({
             }));
         }
         setAssignToAll(prev => !prev);
+    };
+
+    const handleLeaveGroup = async (groupId) => {
+        try {
+            await leaveGroup(groupId)
+
+            navigate("/dashboard");
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     return (
@@ -257,7 +268,7 @@ const GroupModals = ({
                         </button>
                         <button
                             className="bg-gray-800 hover:bg-red-700 text-gray-300 hover:text-white border border-red-600 px-4 py-2 rounded-md transition-colors duration-200"
-                            onClick={handleLeaveGroup}
+                            onClick={() => handleLeaveGroup(groupId)}
                         >
                             Leave Group
                         </button>

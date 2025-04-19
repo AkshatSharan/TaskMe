@@ -121,10 +121,6 @@ const GroupDetails = () => {
         }
     };
 
-    const handleLeaveGroup = () => {
-        navigate("/dashboard");
-    };
-
     const getPriorityColor = (priority) => ({
         high: "bg-red-600",
         medium: "bg-yellow-600",
@@ -292,7 +288,6 @@ const GroupDetails = () => {
                 setTaskForm={setTaskForm}
                 isLeaveGroupModalOpen={isLeaveGroupModalOpen}
                 setIsLeaveGroupModalOpen={setIsLeaveGroupModalOpen}
-                handleLeaveGroup={handleLeaveGroup}
             />
         </div>
     );

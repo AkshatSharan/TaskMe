@@ -19,3 +19,11 @@ export const joinGroupByCode = (code) => API.post(`/groups/join/${code}`);
 export const getGroupById = (id) => API.get(`/groups/${id}`);
 
 export const joinRequest = (groupId, requestId, action) => API.post(`/groups/${groupId}/requests/${requestId}`, action);
+
+export const logout = () => API.post('/auth/logout');
+
+export const signup = (payload) => API.post('/auth/signup', payload);
+
+export const leaveGroup = async (groupId) => {
+    return await API.delete(`/users/${groupId}/leave`);
+};

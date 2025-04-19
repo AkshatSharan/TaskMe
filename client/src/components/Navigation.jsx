@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Menu, User, Home, X, LogOut, CheckCircle } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { createGroup, joinGroupByCode } from "../utils/taskAPI";
+import { createGroup, joinGroupByCode, leaveGroup, logout } from "../utils/taskAPI";
 import axios from "axios";
 import GroupsSidebar from "./GroupsSidebar";
 import Modal from "./Modal";
 import { colorMap } from "./colorMap";
+import API from "../utils/axios";
 
 const Navigation = () => {
     const navigate = useNavigate();
@@ -50,11 +51,6 @@ const Navigation = () => {
 
     const toggleSidebar = () => {
         setSidebarOpen(!sidebarOpen);
-    };
-
-    const handleLeaveGroup = (groupId) => {
-        setTaskGroups(taskGroups.filter(group => group.id !== groupId));
-        setActiveGroupMenu(null);
     };
 
     const handleCreateGroup = async () => {
@@ -107,9 +103,7 @@ const Navigation = () => {
 
     const handleLogout = async () => {
         try {
-            await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/auth/logout`, {}, {
-                withCredentials: true,
-            });
+            await logout();
             localStorage.removeItem("token");
             localStorage.removeItem("isLoggedIn");
             localStorage.removeItem("user");
@@ -148,7 +142,6 @@ const Navigation = () => {
                             setActiveGroupMenu={setActiveGroupMenu}
                             copySuccess={copySuccess}
                             copyGroupCode={copyGroupCode}
-                            handleLeaveGroup={handleLeaveGroup}
                             groupMenuRef={groupMenuRef}
                             colorMap={colorMap}
                             isGroupOptionsOpen={isGroupOptionsOpen}
@@ -208,7 +201,7 @@ const Navigation = () => {
                             value={groupForm.name}
                             onChange={(e) => setGroupForm({ ...groupForm, name: e.target.value })}
                             placeholder="Enter group name"
-                            className="bg-white border border-gray-300 text-gray-800 px-3 py-2 rounded-md w-full"
+                            className="input-box w-full"
                             required
                         />
                     </div>
@@ -222,7 +215,7 @@ const Navigation = () => {
                             onChange={(e) => setGroupForm({ ...groupForm, description: e.target.value })}
                             placeholder="Enter group description"
                             rows="3"
-                            className="bg-white border border-gray-300 text-gray-800 px-3 py-2 rounded-md w-full resize-none"
+                            className="input-box w-full"
                         ></textarea>
                     </div>
                     <div>
@@ -233,7 +226,7 @@ const Navigation = () => {
                             id="groupColor"
                             value={groupForm.color}
                             onChange={(e) => setGroupForm({ ...groupForm, color: e.target.value })}
-                            className="bg-white border border-gray-300 text-gray-800 px-3 py-2 rounded-md w-full"
+                            className="input-box w-full"
                         >
                             <option value="gray">Gray</option>
                             <option value="blue">Blue</option>

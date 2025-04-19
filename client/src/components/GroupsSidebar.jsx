@@ -9,7 +9,7 @@ import {
     UserPlus,
 } from "lucide-react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
-import { fetchTaskGroups } from "../utils/taskAPI";
+import { fetchTaskGroups, leaveGroup } from "../utils/taskAPI";
 import { colorMap } from "./colorMap";
 
 const GroupsSidebar = ({
@@ -22,7 +22,6 @@ const GroupsSidebar = ({
     groupMenuRef,
     copySuccess,
     copyGroupCode,
-    handleLeaveGroup,
     setIsCreateGroupModalOpen,
     setIsJoinGroupModalOpen,
 }) => {
@@ -47,6 +46,19 @@ const GroupsSidebar = ({
     const handleGroupClick = (groupId) => {
         navigate(`/group/${groupId}`);
         toggleSidebar();
+    };
+
+    const handleLeaveGroup = async (groupId) => {
+        setTaskGroups(taskGroups.filter(group => group.id !== groupId));
+        console.log(groupId)
+        setActiveGroupMenu(null);
+        try {
+            await leaveGroup(groupId)
+
+            navigate("/");
+        } catch (err) {
+            console.error("Logout failed:", err);
+        }
     };
 
     return (
