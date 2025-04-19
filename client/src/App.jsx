@@ -14,14 +14,13 @@ const App = () => {
 
   useEffect(() => {
     const handleAuthChange = () => {
+      console.log('Auth state changed, checking login...');
       setIsLoggedIn(localStorage.getItem("isLoggedIn") === "true");
     };
 
-    window.addEventListener("storage", handleAuthChange);
-    window.addEventListener("authChanged", handleAuthChange); // custom event
+    window.addEventListener("authChanged", handleAuthChange);
 
     return () => {
-      window.removeEventListener("storage", handleAuthChange);
       window.removeEventListener("authChanged", handleAuthChange);
     };
   }, []);
@@ -64,7 +63,7 @@ const App = () => {
           } />
 
           <Route path="*" element={
-            isLoggedIn ? <Navigate to="/dashboard" /> : <Navigate to="/" />
+            isLoggedIn ? <Navigate to="/dashboard" /> : <Navigate to="/login" />
           } />
         </Routes>
       </main>

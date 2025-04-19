@@ -9,11 +9,32 @@ const API = axios.create({
 });
 
 API.interceptors.request.use((config) => {
-    const user = JSON.parse(localStorage.getItem('userInfo'));
-    if (user && user.token) {
-        config.headers.Authorization = `Bearer ${user.token}`;
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
+}, (error) => {
+    return Promise.reject(error);
 });
+
+API.interceptors.response.use(
+    response => response,
+    error => {
+        if (error.response && error.response.status === 401) {
+            console.log("Token expired or unauthorized! Logging out...");
+
+            localStorage.removeItem('token');
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('user');
+
+            window.dispatchEvent(new Event('authChanged'));
+
+            window.location.href = '/login';
+        }
+        return Promise.reject(error);
+    }
+);
+
 
 export default API;

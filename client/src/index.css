@@ -25,7 +25,7 @@
 
 @layer components {
   .input-box {
-    @apply border-accent-stroke border p-2 rounded-md bg-blue-100
+    @apply border-accent-stroke border p-2 rounded-md bg-blue-100 text-white resize-none
   }
 
   .site-button {
@@ -47,6 +47,7 @@
   .tab-button {
     @apply bg-blue-100 cursor-pointer py-2 px-4 text-xs sm:text-sm rounded-lg
   }
+
 }
 
 body,
@@ -81,8 +82,53 @@ button {
   cursor: pointer;
 }
 
-input, textarea, select {
-  border: 1px #4B5563 solid;
-  background: lightgray;
-  color: black;
+.container input {
+  display: none;
+}
+
+.container {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.checkmark {
+  position: relative;
+  top: 50%;
+  left: 0;
+  height: 1.3em;
+  width: 1.3em;
+  border-radius: 0.25em;
+  transition: all 0.25s;
+  display: flex;
+}
+
+.container input:checked~.checkmark {
+  background-color: #2196F3;
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  transform: rotate(0deg);
+  border: 0.1em solid #4B5563;
+  left: 0;
+  top: 0;
+  height: 1.3em;
+  width: 1.3em;
+  border-radius: 0.25em;
+  transition: all 0.25s, border-width 0.1s;
+}
+
+.container input:checked~.checkmark:after {
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  width: 0.25em;
+  height: 0.5em;
+  border-color: #fff0 white white #fff0;
+  border-width: 0 0.15em 0.15em 0;
+  border-radius: 0em;
+  transform: rotate(45deg);
 }

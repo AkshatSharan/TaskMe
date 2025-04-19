@@ -170,7 +170,7 @@ const Dashboard = () => {
                                     {filteredTasks.length > 0 ? (
                                         filteredTasks.map((task) => (
                                             <tr
-                                                key={task.id}
+                                                key={task._id}
                                                 className="text-xs sm:text-sm border-b border-b-accent-stroke last:border-b-0 hover:bg-blue-100 transition-colors"
                                             >
                                                 <td className="p-4 font-medium max-sm:max-w-[80px]">{task.name}</td>

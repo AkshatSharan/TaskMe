@@ -21,7 +21,7 @@ export const createTask = async (req, res) => {
             status,
             group: groupId,
             createdBy: req.user._id,
-            assignedTo: assignedTo ? [assignedTo] : [],
+            assignedTo: Array.isArray(assignedTo) ? assignedTo : assignedTo ? [assignedTo] : [],
         });
 
         const savedTask = await task.save();
@@ -30,23 +30,25 @@ export const createTask = async (req, res) => {
             group.tasks.push(savedTask._id);
         }
 
-        if (assignedTo) {
-            const user = await User.findById(assignedTo);
-            if (!user) return res.status(404).json({ message: "Assigned user not found." });
+        if (assignedTo && assignedTo.length) {
+            for (let userId of assignedTo) {
+                const user = await User.findById(userId);
+                if (!user) continue;
 
-            if (!user.groups.includes(groupId)) {
-                user.groups.push(groupId);
+                if (!user.groups.includes(groupId)) {
+                    user.groups.push(groupId);
+                }
+
+                if (!user.tasks.includes(savedTask._id)) {
+                    user.tasks.push(savedTask._id);
+                }
+
+                await user.save();
+
+                if (!group.members.includes(userId)) {
+                    group.members.push(userId);
+                }
             }
-
-            if (!user.tasks.includes(savedTask._id)) {
-                user.tasks.push(savedTask._id);
-            }
-
-            await user.save();
-        }
-
-        if (assignedTo && !group.members.includes(assignedTo)) {
-            group.members.push(assignedTo);
         }
 
         await group.save();
@@ -67,7 +69,7 @@ export const createTask = async (req, res) => {
 
 export const getTasks = async (req, res) => {
     try {
-        const tasks = await Task.find({ createdBy: req.user._id }).sort({ createdAt: -1 });
+        const tasks = await Task.find({ assignedTo: req.user._id });
         res.status(200).json(tasks);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
@@ -88,26 +90,21 @@ export const getTaskDetails = async (req, res) => {
         res.status(500).json({ message: 'Server error', error });
     }
 };
+
 export const updateTask = async (req, res) => {
     try {
+        const { status } = req.body;
         const task = await Task.findById(req.params.id);
 
         if (!task) {
             return res.status(404).json({ message: 'Task not found' });
         }
 
-        if (task.createdBy.toString() !== req.user._id.toString()) {
-            return res.status(401).json({ message: 'Not authorized to update this task' });
-        }
+        await Task.findByIdAndUpdate(task._id, { status: status });
 
-        const updatedTask = await Task.findByIdAndUpdate(
-            req.params.id,
-            { $set: req.body },
-            { new: true, runValidators: true }
-        );
-
-        res.status(200).json(updatedTask);
+        res.status(200).json({ message: 'Task updated successfully', status });
     } catch (error) {
+        console.error("Error updating task:", error);
         res.status(500).json({ message: 'Server error', error });
     }
 };
@@ -124,8 +121,24 @@ export const deleteTask = async (req, res) => {
             return res.status(401).json({ message: 'Not authorized to delete this task' });
         }
 
-        await task.remove();
+        if (task.group) {
+            await TaskGroup.updateOne(
+                { _id: task.group },
+                { $pull: { tasks: task._id } }
+            );
+        }
+
+        if (task.assignedTo && task.assignedTo.length > 0) {
+            await User.updateMany(
+                { _id: { $in: task.assignedTo } },
+                { $pull: { tasks: task._id } }
+            );
+        }
+
+        await task.deleteOne();
+
         res.status(200).json({ message: 'Task deleted successfully' });
+
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
     }

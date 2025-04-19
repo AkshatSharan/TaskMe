@@ -25,15 +25,13 @@ const Login = () => {
                 if (decoded.exp > now) {
                     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
                     navigate('/dashboard');
-                } else {
-                    localStorage.clear();
                 }
             } catch (err) {
                 console.error('Invalid token:', err);
-                localStorage.clear();
             }
         }
     }, []);
+
 
     const handleChange = (e) => {
         setFormData({

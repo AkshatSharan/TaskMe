@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import {
-    Pencil, Trash2, Plus, Filter, ChevronDown, LogOut
+    Trash2, Plus, Filter, ChevronDown, LogOut,
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import GroupModals from "../components/GroupModals";
-import { getGroupById, joinRequest } from "../utils/taskAPI";
+import { deleteTask, getGroupById, joinRequest, updateTask } from "../utils/taskAPI";
+import Loading from "../components/Loading";
 
 const GroupDetails = () => {
     const { groupId } = useParams();
@@ -27,7 +28,6 @@ const GroupDetails = () => {
         priority: "medium",
     });
 
-    const [currentTask, setCurrentTask] = useState(null);
     const priorityDropdownRef = useRef(null);
 
     useEffect(() => {
@@ -35,7 +35,6 @@ const GroupDetails = () => {
             try {
                 const res = await getGroupById(groupId);
                 setGroup(res.data);
-                console.log(res.data)
                 if (res.data.tasks) setTasks(res.data.tasks);
             } catch (err) {
                 console.error("Failed to fetch group data", err);
@@ -60,7 +59,6 @@ const GroupDetails = () => {
     }, []);
 
     const handleNewTask = () => {
-        setCurrentTask(null);
         setTaskForm({
             id: Date.now(),
             title: "",
@@ -72,18 +70,26 @@ const GroupDetails = () => {
         setIsTaskModalOpen(true);
     };
 
-    const handleEditTask = (task) => {
-        setCurrentTask(task);
-        setTaskForm(task);
-        setIsTaskModalOpen(true);
+    const handleDeleteTask = async (taskId) => {
+        try {
+            await deleteTask(taskId);
+            setTasks(tasks.filter(task => task._id !== taskId));
+        } catch (err) {
+            console.error("Failed to delete task:", err);
+            alert("Could not delete task.");
+        }
     };
 
-    const handleDeleteTask = (taskId) => {
-        setTasks(tasks.filter((task) => task.id !== taskId));
-    };
-
-    const handleUpdateStatus = (taskId, newStatus) => {
-        setTasks(tasks.map((task) => task.id === taskId ? { ...task, status: newStatus } : task));
+    const handleUpdateStatus = async (taskId, newStatus) => {
+        setTasks(tasks.map((task) =>
+            task._id === taskId ? { ...task, status: newStatus } : task
+        ));
+        try {
+            await updateTask(taskId, { status: newStatus });
+        } catch (error) {
+            console.error("Failed to update task status:", error);
+            alert("Could not update task status.");
+        }
     };
 
     const getInitials = (name = "") => {
@@ -122,17 +128,47 @@ const GroupDetails = () => {
         low: "bg-blue-600",
     }[priority] || "bg-gray-600");
 
-    const getStatusColor = (status) => ({
-        Complete: "bg-green-600",
-        "In Progress": "bg-blue-600",
-        Pending: "bg-gray-600",
-    }[status] || "bg-gray-600");
-
     const filteredTasks = tasks.filter(task =>
         priorityFilter ? task.priority === priorityFilter : true
     );
 
-    if (!group) return <div className="text-white p-10">Loading...</div>;
+    const completeTasks = filteredTasks.filter(task => task.status === "Complete");
+    const activeTasks = filteredTasks.filter(task => task.status !== "Complete");
+
+    const TaskCard = ({ task, index }) => (
+        <div key={task._id || task.id || `task-${index}`} className="bg-gray-800 p-6 rounded-md border border-gray-700 flex flex-col max-sm:gap-1">
+            <div className="flex justify-between items-center mb-2">
+                <div className="flex items-center gap-2">
+                    <h3 className="font-medium">{task.title}</h3>
+                    <span className={`text-xs px-2 py-1 rounded-full ${getPriorityColor(task.priority)}`}>
+                        {task.priority}
+                    </span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-300">
+                    <button onClick={() => handleDeleteTask(task._id)}><Trash2 size={14} className="text-red-500" /></button>
+                </div>
+            </div>
+            <p className="text-sm text-gray-400 mb-2">{task.description}</p>
+            <div className="flex justify-between sm:items-center sm:flex-row flex-col max-sm:space-y-3">
+                <span className="text-xs">
+                    {Array.isArray(task.assignedTo) && task.assignedTo.length > 0
+                        ? `Assigned to ${task.assignedTo.map(user => user.name).join(", ")}`
+                        : "Assigned to Everyone"}
+                </span>
+                <select
+                    value={task.status}
+                    onChange={(e) => handleUpdateStatus(task._id, e.target.value)}
+                    className="text-xs bg-gray-700 px-3 py-1 rounded-md flex items-center"
+                >
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Complete">Complete</option>
+                </select>
+            </div>
+        </div>
+    );
+
+    if (!group) return <Loading text="Fetching details" />
 
     return (
         <div className="min-h-screen bg-gray-900 text-white p-8 sm:p-12 md:ml-56">
@@ -184,7 +220,7 @@ const GroupDetails = () => {
 
             <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
-                    <h2 className="text-xl font-semibold">Tasks</h2>
+                    <h2 className="text-xl font-semibold">Active Tasks</h2>
                     <div className="relative" ref={priorityDropdownRef}>
                         <button
                             onClick={() => setIsPriorityDropdownOpen(!isPriorityDropdownOpen)}
@@ -195,7 +231,7 @@ const GroupDetails = () => {
                             <ChevronDown size={12} className="ml-1" />
                         </button>
                         {isPriorityDropdownOpen && (
-                            <div className="absolute mt-2 bg-gray-800 rounded-md shadow-md text-sm z-10">
+                            <div className="absolute mt-2 bg-gray-800 rounded-md shadow-md text-sm z-10 overflow-hidden">
                                 {["high", "medium", "low", null].map(p => (
                                     <button
                                         key={p ?? "all"}
@@ -205,7 +241,7 @@ const GroupDetails = () => {
                                             setIsPriorityDropdownOpen(false);
                                         }}
                                     >
-                                        {p ? `${p.charAt(0).toUpperCase() + p.slice(1)} Priority` : "Show All"}
+                                        {p ? `${p.charAt(0).toUpperCase() + p.slice(1)}` : "All"}
                                     </button>
                                 ))}
                             </div>
@@ -218,47 +254,30 @@ const GroupDetails = () => {
                 </button>
             </div>
 
-            <div className="space-y-4">
-                {filteredTasks.length > 0 ? (
-                    filteredTasks.map((task, index) => (
-                        <div key={task._id || task.id || `task-${index}`} className="bg-gray-800 p-4 rounded-md border border-gray-700">
-                            <div className="flex justify-between items-center mb-2">
-                                <div className="flex items-center gap-2">
-                                    <h3 className="font-medium">{task.title}</h3>
-                                    <span className={`text-xs px-2 py-1 rounded-full ${getPriorityColor(task.priority)}`}>
-                                        {task.priority}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-2 text-sm text-gray-300">
-                                    <button onClick={() => handleEditTask(task)}><Pencil size={14} /></button>
-                                    <button onClick={() => handleDeleteTask(task.id)}><Trash2 size={14} className="text-red-500" /></button>
-                                </div>
-                            </div>
-                            <p className="text-sm text-gray-400 mb-2">{task.description}</p>
-                            <div className="flex justify-between items-center">
-                                <span className="text-xs">
-                                    {Array.isArray(task.assignedTo) && task.assignedTo.length > 0
-                                        ? `Assigned to ${task.assignedTo.map(user => user.name).join(", ")}`
-                                        : "Assigned to Everyone"}
-                                </span>
-                                <select
-                                    value={task.status}
-                                    onChange={(e) => handleUpdateStatus(task.id, e.target.value)}
-                                    className={`text-xs px-3 py-1 rounded-md ${getStatusColor(task.status)}`}
-                                >
-                                    <option value="Pending">Pending</option>
-                                    <option value="In Progress">In Progress</option>
-                                    <option value="Complete">Complete</option>
-                                </select>
-                            </div>
-                        </div>
+            <div className="space-y-4 mb-8">
+                {activeTasks.length > 0 ? (
+                    activeTasks.map((task, index) => (
+                        <TaskCard key={task._id || `active-${index}`} task={task} index={index} />
                     ))
                 ) : (
                     <div className="text-center text-gray-400 bg-gray-800 p-6 rounded-md">
-                        {priorityFilter ? `No ${priorityFilter} priority tasks.` : "No tasks available."}
+                        {priorityFilter ? `No ${priorityFilter} priority tasks to work on.` : "No active tasks available."}
                     </div>
                 )}
             </div>
+
+            {completeTasks.length > 0 && (
+                <>
+                    <div className="flex items-center mb-4 mt-8 border-t border-gray-700 pt-6">
+                        <h2 className="text-xl font-semibold text-gray-300">Completed Tasks</h2>
+                    </div>
+                    <div className="space-y-4 opacity-80">
+                        {completeTasks.map((task, index) => (
+                            <TaskCard key={task._id || `complete-${index}`} task={task} index={index} />
+                        ))}
+                    </div>
+                </>
+            )}
 
             <GroupModals
                 isTaskModalOpen={isTaskModalOpen}
@@ -268,8 +287,6 @@ const GroupDetails = () => {
                 setTasks={setTasks}
                 taskForm={taskForm}
                 setTaskForm={setTaskForm}
-                currentTask={currentTask}
-                setCurrentTask={setCurrentTask}
                 isLeaveGroupModalOpen={isLeaveGroupModalOpen}
                 setIsLeaveGroupModalOpen={setIsLeaveGroupModalOpen}
                 handleLeaveGroup={handleLeaveGroup}

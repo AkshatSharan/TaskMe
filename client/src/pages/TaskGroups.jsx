@@ -3,6 +3,7 @@ import { Users, ChevronRight, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { fetchTaskGroups } from "../utils/taskAPI";
 import { colorMap } from "../components/colorMap";
+import Loading from "../components/Loading";
 
 const TaskGroups = () => {
     const navigate = useNavigate();
@@ -44,10 +45,7 @@ const TaskGroups = () => {
                 <h1 className="text-2xl font-bold mb-6">Task Groups</h1>
 
                 {loading ? (
-                    <div className="flex justify-center items-center h-40">
-                        <Loader2 className="animate-spin w-6 h-6 text-white" />
-                        <span className="ml-2 text-sm">Loading groups...</span>
-                    </div>
+                    <Loading text="Loading groups..." />
                 ) : (
                     <div className="space-y-4">
                         {groups.length === 0 ? (

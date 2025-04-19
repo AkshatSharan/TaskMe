@@ -43,7 +43,7 @@ const GroupsSidebar = ({
         fetchGroups();
         window.addEventListener("groupRefresh", fetchGroups);
         return () => window.removeEventListener("groupRefresh", fetchGroups);
-    }, [groupId]);
+    }, [taskGroups]);
 
     const handleGroupClick = (groupId) => {
         navigate(`/group/${groupId}`)

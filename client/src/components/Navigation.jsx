@@ -156,6 +156,7 @@ const Navigation = () => {
                             groupOptionsRef={groupOptionsRef}
                             setIsCreateGroupModalOpen={setIsCreateGroupModalOpen}
                             setIsJoinGroupModalOpen={setIsJoinGroupModalOpen}
+                            taskGroups={taskGroups}
                         />
                     </ul>
                 </nav>
@@ -177,15 +178,6 @@ const Navigation = () => {
                     {profilePopoverOpen && (
                         <div className="absolute right-0 top-10 bg-white rounded-md shadow-lg z-40 w-40">
                             <ul className="py-1">
-                                <li>
-                                    <NavLink
-                                        to="/profile"
-                                        className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50"
-                                        onClick={() => setProfilePopoverOpen(false)}
-                                    >
-                                        <User size={14} className="mr-2" /> Profile
-                                    </NavLink>
-                                </li>
                                 <li>
                                     <button
                                         className="flex items-center w-full text-left px-4 py-2 text-red-500 hover:bg-blue-50"
