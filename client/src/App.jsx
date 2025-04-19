@@ -14,7 +14,6 @@ const App = () => {
 
   useEffect(() => {
     const handleAuthChange = () => {
-      console.log('Auth state changed, checking login...');
       setIsLoggedIn(localStorage.getItem("isLoggedIn") === "true");
     };
 

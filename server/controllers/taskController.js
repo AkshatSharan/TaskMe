@@ -53,11 +53,8 @@ export const createTask = async (req, res) => {
 
         await group.save();
 
-        console.log("Task saved:", savedTask._id);
-        console.log("Group tasks:", group.tasks);
         if (assignedTo) {
             const updatedUser = await User.findById(assignedTo);
-            console.log("User tasks:", updatedUser.tasks);
         }
 
         res.status(201).json(savedTask);
@@ -69,8 +66,11 @@ export const createTask = async (req, res) => {
 
 export const getTasks = async (req, res) => {
     try {
-        const tasks = await Task.find({ assignedTo: req.user._id });
-        res.status(200).json(tasks);
+        const tasks = await Task.find({ assignedTo: req.params.id, status: { $ne: "Complete" } }).populate({
+            path: "group",
+            select: "name id"
+        });
+        return res.status(200).json(tasks);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
     }

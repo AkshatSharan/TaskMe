@@ -27,7 +27,6 @@ const GroupModals = ({
 
     const [assignToAll, setAssignToAll] = useState(false);
 
-    // Set assignToAll state based on whether all members are assigned
     useEffect(() => {
         if (taskForm.assignedTo.length > 0 && group.members.length > 0) {
             const allAssigned = group.members.every(member =>
@@ -53,7 +52,15 @@ const GroupModals = ({
                 setTasks(prev => prev.map(t => t._id === taskForm._id ? { ...t, ...payload } : t));
             } else {
                 const res = await createTask(payload);
-                setTasks(prev => [...prev, res.data]);
+
+                const populatedTask = {
+                    ...res.data,
+                    assignedTo: group.members.filter(member =>
+                        res.data.assignedTo.includes(member._id)
+                    )
+                };
+
+                setTasks(prev => [...prev, populatedTask]);
             }
 
             setIsTaskModalOpen(false);
@@ -72,7 +79,6 @@ const GroupModals = ({
     const handleCheckboxChange = async (e) => {
         const { value, checked } = e.target;
 
-        // Update the local state
         setTaskForm(prev => {
             const updated = checked
                 ? [...prev.assignedTo, value]
@@ -80,11 +86,9 @@ const GroupModals = ({
             return { ...prev, assignedTo: updated };
         });
 
-        // If unchecking a user and we're editing an existing task, remove the user from the task in backend
         if (!checked && taskForm._id) {
             try {
                 await removeUserFromTask(taskForm._id, value);
-                // Tasks state will be updated automatically when the task is saved
             } catch (err) {
                 console.error("Failed to remove user from task:", err);
             }
@@ -215,7 +219,7 @@ const GroupModals = ({
                             Cancel
                         </button>
                         <button
-                            className= "bg-gray-800 hover:bg-green-600 text-green-600 hover:text-white border border-green-600 px-4 py-2 rounded-md transition-colors duration-200"
+                            className="bg-gray-800 hover:bg-green-600 text-green-600 hover:text-white border border-green-600 px-4 py-2 rounded-md transition-colors duration-200"
                             onClick={saveTask}
                             disabled={!taskForm.title.trim()}
                         >

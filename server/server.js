@@ -18,8 +18,6 @@ app.use(cors({
 }));
 app.use(express.json());
 
-console.log('ENV - ACCESS_TOKEN_SECRET:', process.env.ACCESS_TOKEN_SECRET);
-
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/groups', taskGroupRoutes);

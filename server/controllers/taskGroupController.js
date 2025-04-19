@@ -64,10 +64,6 @@ export const approveOrRejectJoinRequest = async (req, res) => {
     const { action } = req.body;
 
     try {
-        console.log("Group ID:", groupId);
-        console.log("Request ID:", requestId);
-        console.log("Action:", action);
-
         const group = await TaskGroup.findById(groupId);
         if (!group) {
             return res.status(404).json({ message: "Group not found" });

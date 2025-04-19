@@ -19,9 +19,6 @@ export const signup = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        console.log('Raw password:', password);
-        console.log('Hashed password:', hashedPassword);
-
         const newUser = new User({
             name,
             email,
@@ -46,14 +43,6 @@ export const login = async (req, res) => {
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
-
-        console.log('Provided password:', password);
-        console.log('Stored hashed password:', user.password);
-        console.log('Password match:', await bcrypt.compare(password, user.password));
-        console.log('User found:', user);
-        console.log('ACCESS_TOKEN_SECRET:', ACCESS_TOKEN_SECRET);
-        console.log('ACCESS_TOKEN_EXPIRY:', ACCESS_TOKEN_EXPIRY);
-
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {

@@ -7,13 +7,13 @@ import {
     CheckCircle,
     UserMinus,
     UserPlus,
-    Users,
 } from "lucide-react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { fetchTaskGroups } from "../utils/taskAPI";
 import { colorMap } from "./colorMap";
 
 const GroupsSidebar = ({
+    toggleSidebar,
     activeGroupMenu,
     setActiveGroupMenu,
     isGroupOptionsOpen,
@@ -28,7 +28,6 @@ const GroupsSidebar = ({
 }) => {
     const [taskGroups, setTaskGroups] = useState([]);
     const navigate = useNavigate();
-    const { groupId } = useParams();
 
     useEffect(() => {
         const fetchGroups = async () => {
@@ -46,13 +45,14 @@ const GroupsSidebar = ({
     }, [taskGroups]);
 
     const handleGroupClick = (groupId) => {
-        navigate(`/group/${groupId}`)
+        navigate(`/group/${groupId}`);
+        toggleSidebar();
     };
 
     return (
-        <li>
+        <li className="flex flex-col gap-4">
             <div className="flex items-center justify-between text-white cursor-pointer">
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2" onClick={toggleSidebar}>
                     <NavLink
                         to="/task-groups"
                         className="flex items-center space-x-2 text-white"
@@ -102,78 +102,83 @@ const GroupsSidebar = ({
                 </div>
             </div>
 
-            <ul className="mt-4 space-y-3 pl-6">
-                {taskGroups.map((group) => (
-                    <li
-                        key={group._id}
-                        className="flex items-center justify-between text-gray-200 hover:text-white cursor-pointer"
-                    >
-                        <div
-                            className="flex items-center space-x-2"
-                            onClick={() => handleGroupClick(group._id)}
-                        >
-                            <div
-                                className={`w-2 h-2 rounded-full ${colorMap[group.color]?.bg || "bg-gray-500"}`}
-                            />
-                            <span className="truncate max-w-[130px]">{group.name}</span>
-                        </div>
-                        <div className="relative">
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setActiveGroupMenu(
-                                        activeGroupMenu === group._id ? null : group._id
-                                    );
-                                }}
-                                className="text-gray-500 hover:text-white p-1 rounded-full"
+            {taskGroups.length > 0 && (
+                <>
+                    <hr className="h-px bg-accent-stroke border-0" />
+                    <ul className="space-y-3 pl-1">
+                        {taskGroups.map((group) => (
+                            <li
+                                key={group._id}
+                                className="flex items-center justify-between text-gray-200 hover:text-white cursor-pointer"
                             >
-                                <MoreVertical size={14} />
-                            </button>
-
-                            {activeGroupMenu === group._id && (
                                 <div
-                                    className="absolute right-0 top-6 bg-white rounded-md shadow-lg z-40 w-44"
-                                    ref={groupMenuRef}
+                                    className="flex items-center space-x-2"
+                                    onClick={() => handleGroupClick(group._id)}
                                 >
-                                    <ul className="py-1">
-                                        <li>
-                                            <button
-                                                className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 text-sm"
-                                                onClick={() => {
-                                                    copyGroupCode(group.code);
-                                                    setActiveGroupMenu(null);
-                                                }}
-                                            >
-                                                {copySuccess ? (
-                                                    <CheckCircle
-                                                        size={14}
-                                                        className="mr-2 text-green-500"
-                                                    />
-                                                ) : (
-                                                    <Copy size={14} className="mr-2" />
-                                                )}
-                                                Copy Invite Code
-                                            </button>
-                                        </li>
-                                        <li>
-                                            <button
-                                                className="flex items-center w-full text-left px-4 py-2 text-red-500 hover:bg-blue-50 text-sm"
-                                                onClick={() => {
-                                                    handleLeaveGroup(group._id);
-                                                    setActiveGroupMenu(null);
-                                                }}
-                                            >
-                                                <UserMinus size={14} className="mr-2" />
-                                                Leave Group
-                                            </button>
-                                        </li>
-                                    </ul>
+                                    <div
+                                        className={`w-2 h-2 rounded-full ${colorMap[group.color]?.bg || "bg-gray-500"}`}
+                                    />
+                                    <span className="truncate max-w-[130px]">{group.name}</span>
                                 </div>
-                            )}
-                        </div>
-                    </li>
-                ))}
-            </ul>
+                                <div className="relative">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setActiveGroupMenu(
+                                                activeGroupMenu === group._id ? null : group._id
+                                            );
+                                        }}
+                                        className="text-gray-500 hover:text-white p-1 rounded-full"
+                                    >
+                                        <MoreVertical size={14} />
+                                    </button>
+
+                                    {activeGroupMenu === group._id && (
+                                        <div
+                                            className="absolute right-0 top-6 bg-white rounded-md shadow-lg z-40 w-44"
+                                            ref={groupMenuRef}
+                                        >
+                                            <ul className="py-1">
+                                                <li>
+                                                    <button
+                                                        className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 text-sm"
+                                                        onClick={() => {
+                                                            copyGroupCode(group.code);
+                                                            setActiveGroupMenu(null);
+                                                        }}
+                                                    >
+                                                        {copySuccess ? (
+                                                            <CheckCircle
+                                                                size={14}
+                                                                className="mr-2 text-green-500"
+                                                            />
+                                                        ) : (
+                                                            <Copy size={14} className="mr-2" />
+                                                        )}
+                                                        Copy Invite Code
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <button
+                                                        className="flex items-center w-full text-left px-4 py-2 text-red-500 hover:bg-blue-50 text-sm"
+                                                        onClick={() => {
+                                                            handleLeaveGroup(group._id);
+                                                            setActiveGroupMenu(null);
+                                                        }}
+                                                    >
+                                                        <UserMinus size={14} className="mr-2" />
+                                                        Leave Group
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    )}
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                </>
+            )}
         </li>
     );
 };

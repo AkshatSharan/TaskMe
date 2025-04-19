@@ -31,6 +31,9 @@ const GroupDetails = () => {
     const priorityDropdownRef = useRef(null);
 
     useEffect(() => {
+
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        const userId = storedUser ? storedUser.id : null;
         const fetchGroupData = async () => {
             try {
                 const res = await getGroupById(groupId);

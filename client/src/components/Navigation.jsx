@@ -137,10 +137,10 @@ const Navigation = () => {
                 </div>
                 <nav className="p-4">
                     <ul className="space-y-5">
-                        <li>
+                        <li onClick={toggleSidebar}>
                             <NavLink to='/dashboard' className="flex items-center space-x-2 text-white cursor-pointer">
                                 <Home className="h-5 w-5" />
-                                <span>Home</span>
+                                <span>Dashboard</span>
                             </NavLink>
                         </li>
                         <GroupsSidebar
@@ -157,6 +157,7 @@ const Navigation = () => {
                             setIsCreateGroupModalOpen={setIsCreateGroupModalOpen}
                             setIsJoinGroupModalOpen={setIsJoinGroupModalOpen}
                             taskGroups={taskGroups}
+                            toggleSidebar={toggleSidebar}
                         />
                     </ul>
                 </nav>

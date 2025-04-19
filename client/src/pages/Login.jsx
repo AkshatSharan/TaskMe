@@ -44,7 +44,6 @@ const Login = () => {
         e.preventDefault();
         setError('');
         setLoading(true);
-        console.log(formData);
 
         try {
             const res = await API.post('/auth/login', formData)
@@ -56,7 +55,7 @@ const Login = () => {
                 window.dispatchEvent(new Event('authChanged'));
 
                 axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
-                navigate('/dashboard');
+                navigate('/task-groups');
             } else {
                 setError(res.data.message || 'Login failed');
             }

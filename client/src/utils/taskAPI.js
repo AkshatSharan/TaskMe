@@ -1,6 +1,6 @@
 import API from '../utils/axios';
 
-export const fetchTasks = () => API.get('/tasks');
+export const getTasks = (id) => API.get(`/tasks/user/${id}`);
 
 export const createTask = (taskData) => API.post("/tasks", taskData);
 
