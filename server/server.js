@@ -18,6 +18,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
+app.get('/', (req, res) => res.status(200).send("TaskMe backend is running :)"));
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/groups', taskGroupRoutes);
