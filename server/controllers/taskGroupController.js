@@ -111,7 +111,6 @@ export const getUserGroups = async (req, res) => {
     try {
         const groups = await TaskGroup.find({
             $or: [
-                { createdBy: req.user._id },
                 { members: req.user._id }
             ]
         }).populate({
