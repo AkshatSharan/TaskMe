@@ -32,11 +32,7 @@ const GroupsSidebar = ({
         const fetchGroups = async () => {
             try {
                 const res = await fetchTaskGroups();
-                const currentUser = JSON.parse(localStorage.getItem('user'));
-                const tasksWithColors = res.data.filter(group =>
-                    group.members.some(m => m._id === currentUser._id)
-                );
-                setTaskGroups(tasksWithColors);
+                setTaskGroups(res.data);
             } catch (err) {
                 console.error("Error loading groups in sidebar:", err);
             }
