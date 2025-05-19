@@ -18,9 +18,9 @@ const TaskGroups = () => {
         setLoading(true);
         try {
             const res = await fetchTaskGroups();
-            const tasksWithColors = res.data.map((group) => ({
-                ...group,
-            }));
+            const tasksWithColors = res.data.filter(group =>
+                group.members.some(m => m._id === currentUser._id)
+            );
             setGroups(tasksWithColors);
         } catch (err) {
             console.error("Failed to load task groups:", err);
