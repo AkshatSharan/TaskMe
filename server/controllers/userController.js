@@ -36,6 +36,11 @@ export const leaveGroup = async (req, res) => {
 
         group.members = group.members.filter(member => member.toString() !== userId.toString());
 
+        if (group.members.length === 0) {
+            await TaskGroup.findByIdAndDelete(groupId);
+            return res.status(200).json({ message: 'Group deleted as no members were left.' });
+        }
+
         for (const taskId of group.tasks) {
             const task = await Task.findById(taskId);
 
